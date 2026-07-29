@@ -1,0 +1,29 @@
+# Android / Gradle
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Secrets — never commit (see AGENTS_WORKFLOW.md section 8)
+*.jks
+*.keystore
+google-services.json
+.env
+.env.*
+*.token
+secrets.*
+
+# Coverage / static analysis reports
+/app/build/reports/
+/domain/build/reports/
+/data/build/reports/
+
+# E2E
+/e2e/build/
