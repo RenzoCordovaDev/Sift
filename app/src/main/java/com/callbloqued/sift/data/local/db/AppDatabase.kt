@@ -6,11 +6,10 @@ import androidx.room.RoomDatabase
 /**
  * Root Room database for Sift.
  *
- * The `entities` list is intentionally empty at F0.  Real entities
- * ([CallAttemptEntity], [BlockedCallLogEntity], [ManualListEntity]) are added
+ * Currently contains only [PlaceholderEntity] — a temporary F0 scaffold required
+ * because Room's KSP processor rejects an empty `entities` list at compile time.
+ * Real entities ([CallAttemptEntity], [ManualListEntity]) replace the placeholder
  * in F2 (attempt history) and F3 (manual lists) once their schemas are finalised.
- * Room allows an empty entity list at compile time; the database will contain no
- * tables until entities are introduced.
  *
  * Schema export is enabled so that migration files can be validated in CI.
  * Exported JSON schema files are committed to `app/schemas/` in version control.
@@ -18,7 +17,7 @@ import androidx.room.RoomDatabase
  * Singleton instance is provided by [com.callbloqued.sift.core.di.DatabaseModule].
  */
 @Database(
-    entities = [],
+    entities = [PlaceholderEntity::class],
     version = 1,
     exportSchema = true
 )
