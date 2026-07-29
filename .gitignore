@@ -27,3 +27,13 @@ secrets.*
 
 # E2E
 /e2e/build/
+
+# Room — schema export files ARE committed (for migration history); build output is not
+/app/build/
+
+# detekt / ktlint report output
+/build/reports/detekt/
+/build/reports/ktlint/
+
+# Gradle wrapper binary IS committed (needed to bootstrap the build without a local Gradle install)
+# !gradle/wrapper/gradle-wrapper.jar
