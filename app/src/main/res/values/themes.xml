@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Base application theme. References the Material3 DayNight theme so the system
+        manages light/dark switching automatically at the View level.
+        The Compose layer uses SiftTheme (presentation/theme/SiftTheme.kt) instead.
+    -->
+    <style name="Theme.Sift" parent="Theme.Material3.DayNight.NoActionBar" />
+</resources>
