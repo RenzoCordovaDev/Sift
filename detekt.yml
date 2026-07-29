@@ -1,0 +1,70 @@
+# detekt static-analysis configuration for Sift.
+# Thresholds match CODE_QUALITY_STANDARDS.md section 4 exactly.
+# This file is read by the root build.gradle.kts detekt configuration block.
+
+build:
+  maxIssues: 0          # Fail on any finding of the enabled rules
+  excludeCorrectable: false
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 40          # max 40 lines per function (CODE_QUALITY_STANDARDS.md §4)
+  ComplexMethod:
+    active: true
+    threshold: 10          # max cyclomatic complexity 10
+  LongParameterList:
+    active: true
+    functionThreshold: 5   # max 5 params; use data class when exceeded
+    constructorThreshold: 5
+  NestedBlockDepth:
+    active: true
+    threshold: 3           # max nesting depth 3 (if/for/when)
+  TooManyFunctions:
+    active: false          # Not enforced for now; revisit in F4+
+
+style:
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2']
+    ignoreAnnotation: true
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: '([a-z][a-zA-Z0-9]*)|(`[^`]+`)'   # allow backtick test names
+  VariableNaming:
+    active: true
+    variablePattern: '[a-z][A-Za-z0-9]*'
+  ConstantNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Z0-9]*'
+
+comments:
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicClass:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - Exception
+      - Throwable
+      - RuntimeException
+
+empty-blocks:
+  EmptyCatchBlock:
+    active: true          # Prohibit silent catch blocks (CODE_QUALITY_STANDARDS.md §8)
+
+# Exclude generated code from detekt analysis
+output-reports:
+  active: true
