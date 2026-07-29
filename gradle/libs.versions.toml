@@ -1,0 +1,77 @@
+[versions]
+agp                      = "8.7.3"
+kotlin                   = "2.0.21"
+ksp                      = "2.0.21-1.0.28"
+hilt                     = "2.52"
+hilt-navigation-compose  = "1.2.0"
+room                     = "2.6.1"
+datastore                = "1.1.1"
+compose-bom              = "2024.12.01"
+coroutines               = "1.9.0"
+libphonenumber           = "8.13.47"
+junit5                   = "5.11.3"
+android-junit5           = "1.11.0.0"
+mockk                    = "1.13.12"
+turbine                  = "1.2.0"
+jacoco                   = "0.8.12"
+detekt                   = "1.23.7"
+androidx-core-ktx        = "1.15.0"
+androidx-lifecycle       = "2.8.7"
+androidx-activity        = "1.9.3"
+
+[libraries]
+# Android core
+androidx-core-ktx                    = { group = "androidx.core",      name = "core-ktx",                    version.ref = "androidx-core-ktx" }
+androidx-lifecycle-runtime-ktx       = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx",        version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose",  version.ref = "androidx-lifecycle" }
+androidx-activity-compose            = { group = "androidx.activity",  name = "activity-compose",            version.ref = "androidx-activity" }
+
+# Jetpack Compose (versions resolved via BOM — no version.ref on individual artifacts)
+compose-bom                = { group = "androidx.compose",         name = "compose-bom" ,          version.ref = "compose-bom" }
+compose-ui                 = { group = "androidx.compose.ui",      name = "ui" }
+compose-ui-graphics        = { group = "androidx.compose.ui",      name = "ui-graphics" }
+compose-ui-tooling         = { group = "androidx.compose.ui",      name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui",      name = "ui-tooling-preview" }
+compose-ui-test-junit4     = { group = "androidx.compose.ui",      name = "ui-test-junit4" }
+compose-ui-test-manifest   = { group = "androidx.compose.ui",      name = "ui-test-manifest" }
+compose-material3          = { group = "androidx.compose.material3", name = "material3" }
+
+# Hilt — dependency injection
+hilt-android            = { group = "com.google.dagger", name = "hilt-android",           version.ref = "hilt" }
+hilt-android-compiler   = { group = "com.google.dagger", name = "hilt-android-compiler",  version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt",    name = "hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
+
+# Room — local SQLite database via ORM
+room-runtime  = { group = "androidx.room", name = "room-runtime",  version.ref = "room" }
+room-ktx      = { group = "androidx.room", name = "room-ktx",      version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler",  version.ref = "room" }
+
+# DataStore — structured on-device preferences
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
+# Kotlin Coroutines
+coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+coroutines-test    = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test",    version.ref = "coroutines" }
+
+# Phone number normalisation (declared now; first usage comes in F1)
+libphonenumber = { group = "com.googlecode.libphonenumber", name = "libphonenumber", version.ref = "libphonenumber" }
+
+# Unit testing — JUnit 5
+junit5-api    = { group = "org.junit.jupiter", name = "junit-jupiter-api",    version.ref = "junit5" }
+junit5-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit5" }
+junit5-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit5" }
+
+# Unit testing — MockK (coroutine-aware Kotlin mocking)
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+
+# Unit testing — Turbine (Flow test assertion helper)
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+
+[plugins]
+android-application = { id = "com.android.application",             version.ref = "agp" }
+kotlin-android      = { id = "org.jetbrains.kotlin.android",        version.ref = "kotlin" }
+kotlin-compose      = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+hilt                = { id = "com.google.dagger.hilt.android",      version.ref = "hilt" }
+ksp                 = { id = "com.google.devtools.ksp",             version.ref = "ksp" }
+android-junit5      = { id = "de.mannodermaus.android-junit5",      version.ref = "android-junit5" }
+detekt              = { id = "io.gitlab.arturbosch.detekt",         version.ref = "detekt" }
