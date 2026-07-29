@@ -1,0 +1,34 @@
+# Build outputs — large, generated, never source of truth
+**/build/
+**/.gradle/
+**/generated/
+
+# JaCoCo & static analysis reports — read by CI, not by agents
+**/reports/
+**/jacoco/
+**/.detekt/
+
+# E2E runtime artifacts
+e2e/build/
+e2e/.appium/
+
+# Android Studio / IDE
+**/.idea/
+**/*.iml
+**/.DS_Store
+
+# Dependencies (let Gradle resolve them, not Claude)
+**/node_modules/
+**/.gradle/caches/
+
+# Release artifacts
+**/*.apk
+**/*.aab
+**/*.aar
+
+# Secrets (should never be here, but extra safety)
+**/*.jks
+**/*.keystore
+**/google-services.json
+**/.env
+**/.env.*

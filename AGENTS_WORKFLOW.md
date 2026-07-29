@@ -10,6 +10,7 @@ El desarrollo se organiza como un **repositorio público en GitHub**, bajo la cu
 
 | Agente | Responsabilidad | Rama base | Entrada | Salida |
 |---|---|---|---|---|
+| **Agente de Entorno (Environment Setup)** | Verifica e instala todas las herramientas necesarias para el desarrollo Android en Windows (JDK, Android SDK, ADB, Node.js, commitlint, ktlint, Appium). Corre **una sola vez** antes de la fase F0 y produce un reporte de entorno. Ver `.claude/agents/environment-setup.md`. | *(no tiene rama propia; corre localmente sobre la máquina)* | Máquina Windows con Android Studio ya instalado | Reporte de entorno con `[✓]`/`[✗]` por herramienta |
 | **Agente Desarrollador Móvil** | Implementa features de la app (Kotlin/Android) según lo definido en `ARCHITECTURE.md` y el feature/fase asignado. | `feature/<fase>-<nombre>` | Especificación de feature + criterios de aceptación | Código + PR hacia `develop` |
 | **Agente Especialista en Test Unitarios** | Escribe y mantiene tests unitarios (`domain`, `data`) para certificar la lógica funcional de cada feature. | `test/unit-<fase>-<nombre>` | Código del feature ya implementado (o interfaces acordadas) | Suite de tests unitarios + reporte de cobertura |
 | **Agente Desarrollador Test E2E** | Automatiza pruebas end-to-end en **Gherkin + Cucumber + Appium** (flujo completo: llamada simulada → decisión → registro en historial). | `test/e2e-<fase>-<nombre>` | Feature integrado en `develop` | Archivos `.feature` (Gherkin) + step definitions (Cucumber-JVM) + ejecución vía Appium |
