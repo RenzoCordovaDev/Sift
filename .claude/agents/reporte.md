@@ -3,7 +3,7 @@ name: reporte
 description: Da seguimiento al estado de todas las fases/features, agentes activos y bloqueos, y actualiza STATUS.md. Úsalo periódicamente o cuando el arquitecto pida un resumen de avance del proyecto.
 tools: Read, Write, Bash, Grep, Glob
 disallowedTools: Edit
-model: haiku
+model: claude-haiku-4-5
 skills:
   - project-standards
 ---

@@ -2,7 +2,7 @@
 name: test-unitario
 description: Escribe y mantiene tests unitarios (JUnit5, MockK, Turbine) para domain/data, y verifica el gate de cobertura JaCoCo ≥80%. Úsalo después de que el Agente Dev Móvil entregue código nuevo.
 tools: Read, Write, Edit, Bash, Grep, Glob
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - project-standards
 ---

@@ -3,7 +3,7 @@ name: revision-codigo
 description: Revisor de código de solo lectura. Verifica cumplimiento de CODE_QUALITY_STANDARDS.md, ARCHITECTURE.md, granularidad de commits, y que TODO el desarrollo (código, KDoc, comentarios, commits, PR) esté en inglés sin comentarios innecesarios, publicando el resultado como el gate "code-review-agent". Úsalo antes de que el Orquestador integre cualquier PR.
 tools: Read, Bash, Grep, Glob
 disallowedTools: Write, Edit
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - project-standards
 ---

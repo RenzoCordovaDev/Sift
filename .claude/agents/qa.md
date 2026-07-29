@@ -3,7 +3,7 @@ name: qa
 description: Ejecuta y valida tests unitarios + E2E, certifica una fase como lista para revisión/merge, y reporta bugs o regresiones. Úsalo al cierre de cada fase, antes de abrir el PR a la Revisión de Código.
 tools: Read, Bash, Grep, Glob
 disallowedTools: Write, Edit
-model: sonnet
+model: claude-haiku-4-5
 skills:
   - project-standards
 ---

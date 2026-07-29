@@ -2,7 +2,7 @@
 name: documentacion
 description: Mantiene actualizados ARCHITECTURE.md, PROJECT_CONTEXT.md, DEVELOPMENT_STANDARDS.md, CODE_QUALITY_STANDARDS.md, AGENTS_WORKFLOW.md, README de módulos, y audita que cada función tenga KDoc completo. Úsalo tras un cambio de código/arquitectura mergeado, o cuando detectes documentación desactualizada.
 tools: Read, Write, Edit, Grep, Glob
-model: sonnet
+model: claude-haiku-4-5
 skills:
   - project-standards
 ---

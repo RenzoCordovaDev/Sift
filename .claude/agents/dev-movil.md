@@ -2,7 +2,7 @@
 name: dev-movil
 description: Implementa features de la app Android (Kotlin) siguiendo ARCHITECTURE.md y el feature/fase asignado. Úsalo para escribir código de producción nuevo o modificar código existente en domain/data/presentation.
 tools: Read, Write, Edit, Bash, Grep, Glob
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - project-standards
 ---

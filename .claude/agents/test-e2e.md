@@ -2,7 +2,7 @@
 name: test-e2e
 description: Automatiza pruebas end-to-end con Gherkin + Cucumber-JVM + Appium sobre el flujo completo de screening de llamadas. Úsalo cuando un feature ya está integrado y necesita certificación de flujo completo.
 tools: Read, Write, Edit, Bash, Grep, Glob
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - project-standards
 ---

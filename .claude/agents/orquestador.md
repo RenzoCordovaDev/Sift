@@ -3,7 +3,7 @@ name: orquestador
 description: Segunda y última aprobación de un PR. Verifica que el gate code-review-agent esté en verde, que CI pase completo, y ejecuta el merge por rebase hacia develop/main. Úsalo solo cuando un PR ya tiene certificación QA y aprobación de Revisión de Código.
 tools: Read, Bash, Grep, Glob
 disallowedTools: Write, Edit
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - project-standards
 ---

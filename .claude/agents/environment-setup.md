@@ -2,7 +2,7 @@
 name: environment-setup
 description: Verifies and installs all required tools and dependencies for Android development on Windows before any development phase starts. Run this agent ONCE before F0. It checks Java JDK, Android SDK, Gradle, Node.js, Appium, commitlint, ktlint, and all CI/CD tooling.
 tools: Read, Bash
-model: sonnet
+model: claude-haiku-4-5
 skills:
   - project-standards
 ---
