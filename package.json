@@ -1,0 +1,9 @@
+{
+  "name": "sift-tooling",
+  "private": true,
+  "description": "Local tooling for Sift's status-check scripts (commitlint). No app runtime code lives here.",
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0"
+  }
+}
