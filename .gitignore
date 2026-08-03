@@ -37,3 +37,6 @@ secrets.*
 
 # Gradle wrapper binary IS committed (needed to bootstrap the build without a local Gradle install)
 # !gradle/wrapper/gradle-wrapper.jar
+
+# Node.js (commitlint tooling, see scripts/status-checks/)
+node_modules/
