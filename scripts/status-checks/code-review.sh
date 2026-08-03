@@ -2,7 +2,7 @@
 # Publishes the `code-review-agent` GitHub commit status.
 #
 # Unlike the other checks, the review itself is a judgment call made by
-# the revision-codigo agent (or a human reviewer) against
+# the code-review-agent (or a human reviewer) against
 # CODE_QUALITY_STANDARDS.md and ARCHITECTURE.md — it isn't something a
 # script can compute. This script only publishes the resulting verdict.
 #
