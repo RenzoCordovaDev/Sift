@@ -136,6 +136,23 @@ jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
 
+// Coverage gate scope is domain/data only (CLAUDE.md rule 5); shared by both
+// JaCoCo tasks below so the scope can't drift between the report and the gate.
+fun jacocoScopedClasses(buildDirFile: java.io.File) =
+    fileTree("$buildDirFile/tmp/kotlin-classes/debug") {
+        include("**/domain/**", "**/data/**")
+        exclude(
+            // Hilt-generated code, which can land inside domain/data packages
+            // when their classes use @Inject.
+            "**/*_Factory*",
+            "**/*_MembersInjector*",
+            // Declarative Room database shell with no business logic; verified
+            // by the androidTest smoke test (AppDatabaseSmokeTest), not JVM
+            // unit coverage.
+            "**/AppDatabase.class"
+        )
+    }
+
 val jacocoTestReport by tasks.registering(JacocoReport::class) {
     dependsOn(tasks.named("testDebugUnitTest"))
 
@@ -145,24 +162,7 @@ val jacocoTestReport by tasks.registering(JacocoReport::class) {
     }
 
     val buildDir = layout.buildDirectory.get().asFile
-    classDirectories.setFrom(
-        fileTree("$buildDir/tmp/kotlin-classes/debug") {
-            // Exclude generated DI/Room code, data-binding, and the Application stub
-            exclude(
-                "**/di/**",
-                "**/hilt_aggregated_deps/**",
-                "**/*_HiltModules*",
-                "**/*_Factory*",
-                "**/*_MembersInjector*",
-                "**/BuildConfig.*",
-                "**/Manifest*.*",
-                "**/R.class",
-                "**/R\$*.class",
-                // Presentation layer is excluded from the 80% gate (domain + data only)
-                "**/presentation/**"
-            )
-        }
-    )
+    classDirectories.setFrom(jacocoScopedClasses(buildDir))
     sourceDirectories.setFrom(files("src/main/java"))
     executionData.setFrom(
         fileTree(buildDir) { include("**/*.exec", "**/*.ec") }
@@ -181,22 +181,7 @@ val jacocoCoverageVerification by tasks.registering(JacocoCoverageVerification::
     }
 
     val buildDir = layout.buildDirectory.get().asFile
-    classDirectories.setFrom(
-        fileTree("$buildDir/tmp/kotlin-classes/debug") {
-            exclude(
-                "**/di/**",
-                "**/hilt_aggregated_deps/**",
-                "**/*_HiltModules*",
-                "**/*_Factory*",
-                "**/*_MembersInjector*",
-                "**/BuildConfig.*",
-                "**/Manifest*.*",
-                "**/R.class",
-                "**/R\$*.class",
-                "**/presentation/**"
-            )
-        }
-    )
+    classDirectories.setFrom(jacocoScopedClasses(buildDir))
     sourceDirectories.setFrom(files("src/main/java"))
     executionData.setFrom(
         fileTree(buildDir) { include("**/*.exec", "**/*.ec") }
