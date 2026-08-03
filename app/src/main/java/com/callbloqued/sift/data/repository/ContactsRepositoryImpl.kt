@@ -2,6 +2,7 @@ package com.callbloqued.sift.data.repository
 
 import android.content.Context
 import android.provider.ContactsContract
+import android.util.Log
 import com.callbloqued.sift.domain.repository.ContactsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -22,8 +23,9 @@ import javax.inject.Inject
  * called. E.164 is universally parseable by [PhoneLookup], so no additional normalisation is
  * needed here.
  *
- * Requires the [android.Manifest.permission.READ_CONTACTS] permission to be granted at runtime
- * before this repository is called. The permission is requested during onboarding (F5).
+ * The [android.Manifest.permission.READ_CONTACTS] permission is normally granted during
+ * onboarding (F5), but [isKnownContact] tolerates it being missing — see its KDoc for the
+ * fail-safe behaviour that guarantees rule 1 (never block a known contact) still holds.
  *
  * Bound to [ContactsRepository] via `@Binds` in
  * [com.callbloqued.sift.core.di.RepositoryModule].
@@ -41,13 +43,21 @@ class ContactsRepositoryImpl @Inject constructor(
      * directly in the URI path. The cursor row count indicates whether a match was found; the
      * actual contact data is not read, keeping the query as lightweight as possible.
      *
-     * Returns `false` (non-contact) when the ContentResolver is unavailable or the cursor is
-     * null, rather than throwing. A null cursor typically signals a missing READ_CONTACTS
-     * permission; in that edge case failing open (treating the number as non-contact) might let
-     * spam through, but it avoids blocking a genuine caller due to a missing runtime permission.
+     * Returns `false` (non-contact) when the cursor itself is null, which can happen on some
+     * OEM ContentProvider implementations even with the permission granted.
+     *
+     * Returns `true` (treat as a known contact) when [android.Manifest.permission.READ_CONTACTS]
+     * is not granted, which makes [android.content.ContentResolver.query] throw
+     * [SecurityException]. This is the only way to honour CLAUDE.md's non-negotiable rule 1
+     * ("never block a number that is in device contacts") in a state where we are structurally
+     * unable to verify contact status: returning `false` here would let the decision flow
+     * proceed to attempt-tracking and risk silently blocking a real contact. The practical
+     * effect is that screening is inert until the permission is granted (F5 onboarding), which
+     * is the safe default.
      *
      * @param phoneNumber Phone number in E.164 format (e.g. "+15551234567").
-     * @return `true` if at least one device contact matches the number; `false` otherwise.
+     * @return `true` if at least one device contact matches the number, or if contact status
+     *   cannot be verified; `false` if the lookup ran but found no match.
      */
     override suspend fun isKnownContact(phoneNumber: String): Boolean {
         val lookupUri = ContactsContract.PhoneLookup.CONTENT_FILTER_URI
@@ -55,14 +65,22 @@ class ContactsRepositoryImpl @Inject constructor(
             .appendPath(phoneNumber)
             .build()
 
-        val cursor = context.contentResolver.query(
-            lookupUri,
-            arrayOf(ContactsContract.PhoneLookup._ID),
-            null,
-            null,
-            null
-        )
+        return try {
+            val cursor = context.contentResolver.query(
+                lookupUri,
+                arrayOf(ContactsContract.PhoneLookup._ID),
+                null,
+                null,
+                null
+            )
+            cursor?.use { it.count > 0 } ?: false
+        } catch (e: SecurityException) {
+            Log.w(TAG, "READ_CONTACTS not granted; treating caller as a known contact to fail safe", e)
+            true
+        }
+    }
 
-        return cursor?.use { it.count > 0 } ?: false
+    private companion object {
+        private const val TAG = "ContactsRepositoryImpl"
     }
 }
