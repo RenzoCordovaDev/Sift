@@ -149,7 +149,15 @@ fun jacocoScopedClasses(buildDirFile: java.io.File) =
             // Declarative Room database shell with no business logic; verified
             // by the androidTest smoke test (AppDatabaseSmokeTest), not JVM
             // unit coverage.
-            "**/AppDatabase.class"
+            "**/AppDatabase.class",
+            // AppDatabase companion object holds the MIGRATION_1_2 constant whose
+            // migration SQL is exercised by the androidTest smoke test, not JVM unit tests.
+            "**/AppDatabase\$*.class",
+            // IncomingCallScreeningService extends Android's CallScreeningService and
+            // cannot be exercised by JVM unit tests without Robolectric (not in the
+            // project stack; see CLAUDE.md). It is covered by the test-e2e agent
+            // using Gherkin + Appium on a real device.
+            "**/service/IncomingCallScreeningService*.class"
         )
     }
 
