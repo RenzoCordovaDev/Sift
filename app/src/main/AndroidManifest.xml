@@ -32,10 +32,21 @@
         </activity>
 
         <!--
-            IncomingCallScreeningService is declared here as a placeholder.
-            Full implementation (F1) requires the BIND_SCREENING_SERVICE permission
-            and a role request for ROLE_CALL_SCREENING via RoleManager.
+            IncomingCallScreeningService is the Android entry point for call screening.
+            android:permission restricts binding to callers that hold BIND_SCREENING_SERVICE,
+            which only the system telecom process holds. android:exported="true" is required
+            so the system can bind to the service; the permission requirement prevents
+            arbitrary apps from doing so.
+            The user must also grant the app ROLE_CALL_SCREENING via RoleManager (F5).
         -->
+        <service
+            android:name=".data.service.IncomingCallScreeningService"
+            android:exported="true"
+            android:permission="android.permission.BIND_SCREENING_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+        </service>
 
     </application>
 
