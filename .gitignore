@@ -40,3 +40,6 @@ secrets.*
 
 # Node.js (commitlint tooling, see scripts/status-checks/)
 node_modules/
+
+# Local git worktrees used by agent sessions (see LOCAL_AUTOMATION_SETUP.md section 7)
+/.claude/worktrees/
