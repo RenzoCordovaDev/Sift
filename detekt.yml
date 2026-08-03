@@ -10,7 +10,7 @@ complexity:
   LongMethod:
     active: true
     threshold: 40          # max 40 lines per function (CODE_QUALITY_STANDARDS.md §4)
-  ComplexMethod:
+  CyclomaticComplexMethod:
     active: true
     threshold: 10          # max cyclomatic complexity 10
   LongParameterList:
@@ -33,17 +33,28 @@ style:
   MaxLineLength:
     active: true
     maxLineLength: 120
+  UnusedPrivateMember:
+    active: true
+    # @Preview composables are only invoked by Android Studio tooling, never by
+    # compiled code, so they read as unused without this exclusion.
+    allowedNames: '_|ignored|expected|serialVersionUID|.*Preview'
 
 naming:
   FunctionNaming:
     active: true
-    functionPattern: '([a-z][a-zA-Z0-9]*)|(`[^`]+`)'   # allow backtick test names
+    # Allows lowerCamelCase, backtick test names, and PascalCase for @Composable
+    # functions (Compose convention) since this detekt version has no
+    # annotation-based exclusion for FunctionNaming.
+    functionPattern: '([a-z][a-zA-Z0-9]*)|([A-Z][a-zA-Z0-9]*)|(`[^`]+`)'
   VariableNaming:
     active: true
     variablePattern: '[a-z][A-Za-z0-9]*'
-  ConstantNaming:
+  TopLevelPropertyNaming:
     active: true
-    constantPattern: '[A-Z][_A-Z0-9]*'
+    constantPattern: '[A-Z][_A-Z0-9]*'   # replaces the non-existent ConstantNaming rule
+  ObjectPropertyNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Z0-9]*'   # covers companion-object / object consts
 
 comments:
   UndocumentedPublicFunction:
