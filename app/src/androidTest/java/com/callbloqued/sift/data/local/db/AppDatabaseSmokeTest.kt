@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
  * - A connected Android device or running emulator (API 29+).
  * - Execute via `./gradlew connectedDebugAndroidTest` (NOT `./gradlew test`).
  *
- * Note for dev-movil: if Room migration tests are needed in future phases, add
+ * Note for mobile-dev: if Room migration tests are needed in future phases, add
  * `androidTestImplementation(libs.room.testing)` to build.gradle.kts and declare
  * `room-testing` in `gradle/libs.versions.toml`.
  */
