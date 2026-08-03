@@ -75,10 +75,15 @@ class SettingsDataStore @Inject constructor(
     /**
      * Persists the minimum number of blocked attempts required before a caller is allowed through.
      *
-     * @param count The new threshold value. Must be a positive integer (≥1); enforcement of the
-     *   lower bound is the responsibility of the calling layer.
+     * @param count The new threshold value. Must be a positive integer (≥1).
+     * @throws IllegalArgumentException if [count] is less than 1. A value of 0 or less would
+     *   let [EvaluateIncomingCallUseCase][com.callbloqued.sift.domain.usecase.EvaluateIncomingCallUseCase]
+     *   allow every caller on their very first attempt, defeating the product's core rule.
      */
     suspend fun setRequiredAttemptCount(count: Int) {
+        require(count >= MINIMUM_REQUIRED_ATTEMPT_COUNT) {
+            "requiredAttemptCount must be >= $MINIMUM_REQUIRED_ATTEMPT_COUNT, got $count"
+        }
         dataStore.edit { prefs -> prefs[KEY_REQUIRED_ATTEMPT_COUNT] = count }
     }
 
@@ -104,5 +109,8 @@ class SettingsDataStore @Inject constructor(
          * (i.e. one prior blocked attempt is required).
          */
         const val DEFAULT_REQUIRED_ATTEMPT_COUNT: Int = 1
+
+        /** Lower bound enforced by [setRequiredAttemptCount]; see its KDoc for why. */
+        const val MINIMUM_REQUIRED_ATTEMPT_COUNT: Int = 1
     }
 }

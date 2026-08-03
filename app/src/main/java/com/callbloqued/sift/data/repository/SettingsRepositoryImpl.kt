@@ -51,7 +51,9 @@ class SettingsRepositoryImpl @Inject constructor(
     /**
      * Updates the minimum number of blocked attempts required before a caller is allowed through.
      *
-     * @param count Must be a positive integer (≥1). Values ≤0 are rejected by the use case.
+     * @param count Must be a positive integer (≥1).
+     * @throws IllegalArgumentException if [count] is less than 1; see
+     *   [SettingsDataStore.setRequiredAttemptCount] for why this is enforced.
      */
     override suspend fun setRequiredAttemptCount(count: Int) {
         settingsDataStore.setRequiredAttemptCount(count)

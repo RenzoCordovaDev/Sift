@@ -43,7 +43,8 @@ interface SettingsRepository {
     /**
      * Updates the minimum number of blocked attempts required before a number is allowed through.
      *
-     * @param count Must be a positive integer (≥1).  Values ≤0 are rejected by the use case.
+     * @param count Must be a positive integer (≥1).
+     * @throws IllegalArgumentException if [count] is less than 1.
      */
     suspend fun setRequiredAttemptCount(count: Int)
 }
