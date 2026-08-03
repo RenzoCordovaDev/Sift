@@ -38,6 +38,15 @@ style:
     # @Preview composables are only invoked by Android Studio tooling, never by
     # compiled code, so they read as unused without this exclusion.
     allowedNames: '_|ignored|expected|serialVersionUID|.*Preview'
+  ReturnCount:
+    active: true
+    # Linear decision-flow functions (e.g. EvaluateIncomingCallUseCase) need more than
+    # the default of 2. The project quality standard limits cyclomatic complexity to 10
+    # (CODE_QUALITY_STANDARDS.md §4), which already guards against overly complex logic;
+    # an additional return-count cap would force unnecessary intermediate variables.
+    max: 5
+    excludeLabeled: false
+    excludeReturnFromLambda: true
 
 naming:
   FunctionNaming:

@@ -82,6 +82,10 @@ class SettingsDataStore @Inject constructor(
         dataStore.edit { prefs -> prefs[KEY_REQUIRED_ATTEMPT_COUNT] = count }
     }
 
+    /**
+     * Preference keys and default values shared between [SettingsDataStore] and any test
+     * helper that needs to pre-populate a [DataStore] with known values.
+     */
     companion object {
 
         /** DataStore key for the filter-enabled preference. */

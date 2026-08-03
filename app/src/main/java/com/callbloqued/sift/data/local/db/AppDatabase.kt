@@ -35,6 +35,10 @@ abstract class AppDatabase : RoomDatabase() {
      */
     abstract fun callAttemptDao(): CallAttemptDao
 
+    /**
+     * Holds Room migration objects shared between [com.callbloqued.sift.core.di.DatabaseModule]
+     * and test harnesses that build in-memory databases with the same migration path.
+     */
     companion object {
 
         /**
