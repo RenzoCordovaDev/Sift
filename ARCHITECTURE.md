@@ -29,22 +29,55 @@ app/
 ├── presentation/       # UI (Activities/Fragments o Compose), ViewModels
 ├── domain/             # Casos de uso, modelos de negocio, interfaces de repos
 ├── data/                # Implementación de repos, Room, ContactsProvider, DataStore
-└── core/                # Utilidades, extensiones, DI, constantes
+├── core/                # Utilidades, extensiones, DI, constantes
+└── SiftApplication      # Punto de entrada, @HiltAndroidApp
 ```
 
 Reglas de dependencia: `presentation → domain ← data`. El dominio no conoce Android Framework directamente (se abstrae vía interfaces).
 
+### Estado post-F0 (implementado)
+
+En **F0** se estableció la estructura base:
+
+- **`core/di/`:** módulos Hilt:
+  - `DatabaseModule` — provee singleton `AppDatabase` en `SingletonComponent`.
+  - `DataStoreModule` — provee singleton `DataStore<Preferences>` en `SingletonComponent`.
+  
+- **`domain/repository/`:** interfaces (sin imports de Android):
+  - `ContactsRepository` — contrato para consultar agenda.
+  - `CallAttemptRepository` — contrato para historial de intentos de llamadas.
+  - `SettingsRepository` — contrato para preferencias del usuario.
+  
+- **`data/local/db/`:** Room database:
+  - `AppDatabase` — raíz del esquema, configura exportación de JSON schema.
+  - `PlaceholderEntity` — entidad temporal F0 (requisito de KSP; se reemplaza en F1/F2 con entidades reales).
+  
+- **`data/local/datastore/`:** wrapper DataStore:
+  - `SettingsDataStore` — expone `Flow<Preferences>` del DataStore de Hilt.
+  
+- **`presentation/`:** UI Compose:
+  - `MainActivity` — actividad única (@AndroidEntryPoint, Hilt inyectable).
+  - `theme/SiftTheme` — tema Material3 base.
+  - `placeholder/PlaceholderScreen` — pantalla temporal F0 (se reemplaza en F4 con navegación real).
+  
+- **`SiftApplication`** — @HiltAndroidApp, punto de entrada de Hilt.
+
 ## 4. Componentes principales
 
-| Componente | Responsabilidad |
-|---|---|
-| `IncomingCallScreeningService` | Extiende `CallScreeningService`. Punto de entrada del sistema. Delega la decisión al dominio. |
-| `EvaluateIncomingCallUseCase` | Lógica central: ¿está en contactos? ¿ya llamó antes? ¿está en lista blanca/negra manual? |
-| `ContactsRepository` | Consulta `ContactsContract` para saber si el número está guardado. |
-| `CallAttemptRepository` | Persiste (Room) cada intento de llamada de números desconocidos: número, timestamp, cantidad de intentos. |
-| `CallLogRepository` | Historial de llamadas bloqueadas/permitidas, mostrado en UI. |
-| `RoleRequestManager` | Gestiona la solicitud del rol `ROLE_CALL_SCREENING` al usuario. |
-| `SettingsRepository` (DataStore) | Preferencias: activar/desactivar filtro, número de intentos requeridos, listas manuales. |
+| Componente | Estado | Responsabilidad |
+|---|---|---|
+| `IncomingCallScreeningService` | **F1** | Extiende `CallScreeningService`. Punto de entrada del sistema. Delega la decisión al dominio. |
+| `EvaluateIncomingCallUseCase` | **F1** | Lógica central: ¿está en contactos? ¿ya llamó antes? ¿está en lista blanca/negra manual? |
+| `ContactsRepository` | **F0 (interfaz)** | Contrato para consultar `ContactsContract`. Implementación en F1. |
+| `CallAttemptRepository` | **F0 (interfaz)** | Contrato para persistencia (Room) de intentos. Implementación en F2. |
+| `CallLogRepository` | **F2** | Historial de llamadas bloqueadas/permitidas, mostrado en UI. |
+| `SettingsRepository` | **F0 (interfaz)** | Contrato para preferencias. Implementación en F1 (con `SettingsRepositoryImpl`). |
+| `SettingsDataStore` | **F0** | Wrapper del DataStore Jetpack; expone `Flow<Preferences>`. |
+| `AppDatabase` | **F0** | Raíz Room; contiene `PlaceholderEntity` (temporal). Entidades reales en F1/F2/F3. |
+| `RoleRequestManager` | **F5** | Gestiona la solicitud del rol `ROLE_CALL_SCREENING` al usuario. |
+| `SiftApplication` | **F0** | @HiltAndroidApp, inicializa DI. |
+| `MainActivity` | **F0** | Actividad única con Compose. Aloja `PlaceholderScreen` (temporal); NavHost en F4. |
+| `SiftTheme` | **F0** | Tema Material3 base. Personalizaciones en F4. |
 
 ## 5. Flujo de decisión (lógica de negocio central)
 
@@ -65,18 +98,20 @@ Este historial de intentos se guarda en Room y sobrevive reinicios de la app.
 
 ## 6. Persistencia de datos
 
-**Room Database** con las siguientes entidades:
+**Room Database** con las siguientes entidades (planeadas):
 
-- `CallAttemptEntity(number, firstAttemptAt, lastAttemptAt, attemptCount, resolvedAsAllowed)`
-- `BlockedCallLogEntity(number, timestamp, reason)`
-- `ManualListEntity(number, type: BLACKLIST|WHITELIST, addedAt)`
+- `CallAttemptEntity(number, firstAttemptAt, lastAttemptAt, attemptCount, resolvedAsAllowed)` — **F2**
+- `BlockedCallLogEntity(number, timestamp, reason)` — **F2**
+- `ManualListEntity(number, type: BLACKLIST|WHITELIST, addedAt)` — **F3**
+
+En **F0**, `AppDatabase` contiene solo `PlaceholderEntity` (temporal, requerida para que el KSP de Room compile). Esta entidad se elimina tan pronto como la primera entidad real (F1/F2) se agregue.
 
 Los números se normalizan (formato E.164) antes de guardarse y compararse, usando `libphonenumber` (librería de Google) para evitar falsos negativos por formato (+57 vs 057 vs sin prefijo, etc.).
 
 ## 7. Stack técnico propuesto
 
 - **Lenguaje:** Kotlin 100%
-- **UI:** Jetpack Compose (recomendado) o Views con ViewBinding (a decidir en fase de setup)
+- **UI:** Jetpack Compose + Material3 (decidido en F0)
 - **DI:** Hilt
 - **Persistencia:** Room + DataStore (preferencias)
 - **Concurrencia:** Kotlin Coroutines + Flow
