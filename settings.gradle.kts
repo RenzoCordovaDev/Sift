@@ -22,3 +22,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sift"
 include(":app")
+// E2E test module: pure JVM, runs Cucumber-JVM + Appium on the host machine
+// against an Android emulator. Excluded from CI (no emulator available there);
+// execute locally with: ./gradlew :e2e:test -Dappium.url=http://127.0.0.1:4723
+include(":e2e")
