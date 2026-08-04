@@ -157,7 +157,12 @@ fun jacocoScopedClasses(buildDirFile: java.io.File) =
             // cannot be exercised by JVM unit tests without Robolectric (not in the
             // project stack; see CLAUDE.md). It is covered by the test-e2e agent
             // using Gherkin + Appium on a real device.
-            "**/service/IncomingCallScreeningService*.class"
+            "**/service/IncomingCallScreeningService*.class",
+            // Thin ContentResolver/ContactsContract wrapper with no business logic of its
+            // own (that lives in ContactsRepositoryImpl, which IS covered). Android's
+            // ContactsContract static fields are null in the JVM unit-test stub jar, so
+            // this class can only be exercised on a real device or emulator.
+            "**/ContactsContentResolverGateway.class"
         )
     }
 
