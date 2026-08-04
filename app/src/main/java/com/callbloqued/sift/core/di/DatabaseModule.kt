@@ -3,6 +3,7 @@ package com.callbloqued.sift.core.di
 import android.content.Context
 import androidx.room.Room
 import com.callbloqued.sift.data.local.db.AppDatabase
+import com.callbloqued.sift.data.local.db.BlockedCallLogDao
 import com.callbloqued.sift.data.local.db.CallAttemptDao
 import dagger.Module
 import dagger.Provides
@@ -28,10 +29,13 @@ object DatabaseModule {
     /**
      * Creates and returns the application-scoped [AppDatabase] instance.
      *
-     * Registers [AppDatabase.MIGRATION_1_2] so that devices upgrading from v1 (F0 placeholder
-     * schema) to v2 (F1 real entities) are migrated without data loss. Destructive migration
-     * is intentionally **not** enabled; any future schema change must ship a corresponding
-     * [androidx.room.migration.Migration].
+     * Registers all known migrations so that devices upgrading from any prior schema version
+     * are migrated without data loss. Destructive migration is intentionally **not** enabled;
+     * every future schema change must ship a corresponding [androidx.room.migration.Migration].
+     *
+     * **Migration history:**
+     * - [AppDatabase.MIGRATION_1_2]: v1 (F0 placeholder) → v2 (F1 CallAttemptEntity).
+     * - [AppDatabase.MIGRATION_2_3]: v2 (F1) → v3 (F2 BlockedCallLogEntity).
      *
      * @param context Application context used by Room to locate the database file.
      * @return The singleton [AppDatabase] instance.
@@ -46,7 +50,10 @@ object DatabaseModule {
             AppDatabase::class.java,
             "sift_database"
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3
+            )
             .build()
 
     /**
@@ -61,4 +68,14 @@ object DatabaseModule {
     @Provides
     fun provideCallAttemptDao(database: AppDatabase): CallAttemptDao =
         database.callAttemptDao()
+
+    /**
+     * Provides the [BlockedCallLogDao] obtained directly from the [AppDatabase] singleton.
+     *
+     * @param database The application-scoped [AppDatabase] from which the DAO is retrieved.
+     * @return The Room-generated [BlockedCallLogDao] implementation.
+     */
+    @Provides
+    fun provideBlockedCallLogDao(database: AppDatabase): BlockedCallLogDao =
+        database.blockedCallLogDao()
 }
