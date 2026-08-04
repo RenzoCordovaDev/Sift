@@ -1,6 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sift</string>
-    <!-- Placeholder text shown during F0 scaffold; replaced by real UI in F4 -->
-    <string name="placeholder_setup_complete">Sift is ready. Real UI coming in F4.</string>
+
+    <!-- Bottom navigation labels -->
+    <string name="nav_history">History</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_manual_lists">Lists</string>
+
+    <!-- History screen -->
+    <string name="history_title">Blocked Calls</string>
+    <string name="history_empty">No blocked calls yet.</string>
+    <string name="history_reason_attempt_threshold">Attempt threshold</string>
+    <string name="history_reason_manual_blacklist">Manual blacklist</string>
+    <string name="history_action_title">Add %1$s to list</string>
+    <string name="history_add_to_whitelist">Add to whitelist</string>
+    <string name="history_add_to_blacklist">Add to blacklist</string>
+    <string name="history_dismiss">Dismiss</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_filter_enabled_label">Enable call screening</string>
+    <string name="settings_filter_enabled_desc">Block unknown callers on their first attempt</string>
+    <string name="settings_attempt_count_label">Required attempts to allow</string>
+    <string name="settings_attempt_count_desc">Number of blocked attempts before a caller is let through</string>
+
+    <!-- Manual lists screen -->
+    <string name="manual_lists_title">Manual Lists</string>
+    <string name="manual_lists_tab_blacklist">Blacklist</string>
+    <string name="manual_lists_tab_whitelist">Whitelist</string>
+    <string name="manual_lists_empty_blacklist">No numbers in blacklist.</string>
+    <string name="manual_lists_empty_whitelist">No numbers in whitelist.</string>
+    <string name="manual_lists_remove_cd">Remove %1$s from list</string>
+    <string name="manual_lists_add_hint">Phone number (e.g. +15551234567)</string>
+    <string name="manual_lists_add_button">Add</string>
+    <string name="manual_lists_invalid_number">Invalid phone number format</string>
+    <string name="manual_lists_add_to_blacklist">Add to blacklist</string>
+    <string name="manual_lists_add_to_whitelist">Add to whitelist</string>
 </resources>
