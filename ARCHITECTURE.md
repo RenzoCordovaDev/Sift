@@ -90,18 +90,46 @@ En **F1** se completó el **núcleo funcional de screening** (por qué se implem
 
 **F2 (Historial de intentos visible)** ahora se refiere específicamente a **la UI y funcionalidad de historial** (pantalla de llamadas bloqueadas, detalles, exportación), **no** a la persistencia básica de intentos que ya existe en F1.
 
+### Estado post-F2 (implementado)
+
+En **F2** se completó la **capa de persistencia de eventos de bloqueo** (data + domain, sin UI — la pantalla Compose se entrega en F4):
+
+- **`domain/model/BlockReason`** — enum extensible de motivos de bloqueo (hoy solo `ATTEMPT_THRESHOLD`; F3 agregará `MANUAL_BLACKLIST`).
+
+- **`domain/model/BlockedCallLogEntry`** — modelo de dominio que representa un evento individual de bloqueo (id, phoneNumber, timestamp, reason). Distinto de `CallAttemptEntity` que es un agregado por número.
+
+- **`domain/repository/CallLogRepository`** — contrato sin imports de Android: `logBlockedCall(phoneNumber, reason)` suspend, `observeBlockedCallLog()` Flow ordenado newest-first.
+
+- **`data/local/db/BlockedCallLogEntity`** + **`BlockedCallLogDao`** — tabla Room `blocked_call_log`; almacena uno registro por cada bloqueo individual.
+
+- **`data/repository/CallLogRepositoryImpl`** — implementación Room; degrada motivos desconocidos a `ATTEMPT_THRESHOLD` (forward-compatible para fases futuras).
+
+- **`core/di/RepositoryModule`** — binding Hilt nuevo: `bindCallLogRepository(impl)` como singleton.
+
+- **`domain/usecase/EvaluateIncomingCallUseCase`** — modificado: recibe `CallLogRepository` como 5º parámetro; nuevo método privado `recordAndLogBlock()` que persiste tanto en `CallAttemptRepository` (agregado) como en `CallLogRepository` (evento individual) cuando se decide `DisallowSilently`. Las dos escrituras son secuenciales, no transaccionales (decisión de alcance F2).
+
+- **`data/local/db/AppDatabase`** — versión 3; `MIGRATION_2_3` agrega `blocked_call_log` sin modificar `CallAttemptEntity`.
+
+- **`detekt.yml`** — corregido `constructorThreshold` de 5→6 (límite efectivo 5 params; detekt dispara en `>= threshold`, no en `>`); agregado `'3'` a `ignoreNumbers` para `Migration(2, 3)`.
+
+- **`e2e/f2_attempt_history.feature`** — 2 escenarios: `@BlockedCallLogged` (implementado; verifica via `adb shell run-as ... sqlite3`), `@HistoryScreen @PendingUI` (depende de F4 Compose).
+
+- **Cobertura JaCoCo:** 92.1% INSTRUCTION (gate ≥80%). **QA Certification:** PASS (PR #8, formal certification en comentario del PR). **Revisión de Código:** APPROVE (tras REQUEST_CHANGES resueltos).
+
+**Decisiones conscientes F2:** persistencia de evento exclusivamente data/domain; no hay pantalla Compose en F2 (se construye en F4 consumiendo `CallLogRepository`). Las dos bases de datos (`CallAttemptEntity` y `BlockedCallLogEntity`) coexisten: la primera (agregado) alimenta la lógica de decisión; la segunda (evento) alimentará la pantalla de historial del usuario.
+
 ## 4. Componentes principales
 
 | Componente | Estado | Responsabilidad |
 |---|---|---|
 | `IncomingCallScreeningService` | **F1** | Extiende `CallScreeningService`. Punto de entrada del sistema. Delega la decisión al dominio. |
-| `EvaluateIncomingCallUseCase` | **F1** | Lógica central: filtro habilitado? ¿se normaliza el número? ¿está en contactos? ¿se alcanzó el umbral de intentos? |
+| `EvaluateIncomingCallUseCase` | **F1→F2** | Lógica central de decisión (F1). F2: ahora delega persistencia de evento a `CallLogRepository`. |
 | `ContactsRepository` | **F1** | Contrato para consultar `ContactsContract`. Implementación en F1 (gateway + repository). |
-| `CallAttemptRepository` | **F1** | Contrato para persistencia (Room) de intentos. Implementación en F1 (entidad + DAO). |
-| `CallLogRepository` | **F2** | Historial de llamadas bloqueadas/permitidas, mostrado en UI. |
+| `CallAttemptRepository` | **F1** | Contrato para persistencia (Room) de intentos agregados. Implementación en F1 (entidad + DAO). |
+| `CallLogRepository` | **F2** | Contrato para eventos de bloqueo individual. Implementación en F2 (entidad + DAO + repository). |
 | `SettingsRepository` | **F1** | Contrato para preferencias. Implementación en F1 (wrapper tipado de `SettingsDataStore`). |
 | `SettingsDataStore` | **F0** | Wrapper del DataStore Jetpack; expone `Flow<Preferences>`. |
-| `AppDatabase` | **F1** | Raíz Room; contiene `CallAttemptEntity` (F1). `PlaceholderEntity` reemplazada. Próximas entidades en F2/F3. |
+| `AppDatabase` | **F1→F2** | Raíz Room. F1: agregó `CallAttemptEntity`. F2: agregó `BlockedCallLogEntity`; versión 3. |
 | `RoleRequestManager` | **F5** | Gestiona la solicitud del rol `ROLE_CALL_SCREENING` al usuario. |
 | `SiftApplication` | **F0** | @HiltAndroidApp, inicializa DI. |
 | `MainActivity` | **F0** | Actividad única con Compose. Aloja `PlaceholderScreen` (temporal); NavHost en F4. |
@@ -142,18 +170,21 @@ El historial de intentos se guarda en Room (`CallAttemptEntity`) y sobrevive rei
 **Room Database** con las siguientes entidades:
 
 - **`CallAttemptEntity(phoneNumber, firstAttemptAt, lastAttemptAt, attemptCount)`** — **F1 (implementada)**
-  - Almacena el historial de intentos bloqueados por número. `phoneNumber` es la PK.
+  - Almacena el historial agregado de intentos bloqueados por número (una fila por número). `phoneNumber` es la PK.
   - `firstAttemptAt` y `lastAttemptAt` son timestamps de Unix (ms) de la primera y última vez que se bloqueó.
   - `attemptCount` es el contador total de intentos bloqueados silenciosamente.
+  - Usado por `EvaluateIncomingCallUseCase` para la regla "permitir en Nth intento".
   - Mapeo: `CallAttemptRepositoryImpl` ↔ `CallAttemptDao` ↔ Room.
 
-- **`BlockedCallLogEntity(number, timestamp, reason)`** — **F2**
-  - Historial visible de llamadas bloqueadas (capa de UI/analytics).
+- **`BlockedCallLogEntity(id, phoneNumber, timestamp, reason)`** — **F2 (implementada)**
+  - Almacena eventos individuales de bloqueo (una fila por cada bloqueo). Distinto de `CallAttemptEntity`: esta tabla crece monotónicamente y es la fuente de datos para la pantalla de historial del usuario (F4).
+  - `id` es un auto-incremento (no una PK natural), `phoneNumber` en E.164, `timestamp` en ms epoch, `reason` es el nombre del enum `BlockReason` (almacenado como string para forward-compatibility).
+  - Mapeo: `CallLogRepositoryImpl` ↔ `BlockedCallLogDao` ↔ Room.
 
-- **`ManualListEntity(number, type: BLACKLIST|WHITELIST, addedAt)`** — **F3**
+- **`ManualListEntity(number, type: BLACKLIST|WHITELIST, addedAt)`** — **F3 (pendiente)**
   - Listas manuales editables por el usuario.
 
-En **F0**, `AppDatabase` contenía solo `PlaceholderEntity` (temporal). En **F1** fue reemplazada por `CallAttemptEntity`, que es la primera entidad real requerida por el núcleo de screening.
+En **F0**, `AppDatabase` contenía solo `PlaceholderEntity` (temporal). En **F1** fue reemplazada por `CallAttemptEntity`, que es la primera entidad real requerida por el núcleo de screening. En **F2** se agregó `BlockedCallLogEntity` (migración 2→3) sin modificar `CallAttemptEntity`.
 
 Los números se normalizan (formato E.164) antes de guardarse y compararse, usando `libphonenumber` (librería de Google) para evitar falsos negativos por formato (+57 vs 057 vs sin prefijo, etc.). La normalización se centraliza en `PhoneNumberNormalizer`.
 
@@ -212,9 +243,9 @@ Todos los permisos deben solicitarse en tiempo de ejecución con explicación cl
 |---|---|---|
 | **F0** | Setup: proyecto base, DI, arquitectura de carpetas, CI básico | `feature/f0-setup` |
 | **F1** | Núcleo de screening: `CallScreeningService` + `EvaluateIncomingCallUseCase` + persistencia básica de intentos + contactos + settings | `feature/f1-call-screening-core` |
-| **F2** | Historial visible: pantalla de llamadas bloqueadas, detalles, análisis (basado en `CallAttemptEntity` de F1) | `feature/f2-attempt-history` |
-| **F3** | Listas manuales: blacklist/whitelist editable por el usuario | `feature/f3-manual-lists` |
-| **F4** | UI: pantalla de estado, historial de bloqueados, configuración, eliminación de `PlaceholderScreen` | `feature/f4-ui` |
+| **F2** | Historial de eventos: capa data/domain para persistencia de eventos individuales de bloqueo (Room + `CallLogRepository`). **Sin UI** — la pantalla Compose se entrega en F4. | `feature/f2-attempt-history` |
+| **F3** | Listas manuales: blacklist/whitelist editable por el usuario (data/domain; UI en F4) | `feature/f3-manual-lists` |
+| **F4** | UI: pantalla de historial de bloqueados, configuración, listas manuales; consumo de `CallLogRepository` y `ManualListRepository`; eliminación de `PlaceholderScreen` | `feature/f4-ui` |
 | **F5** | Onboarding: solicitud de rol y permisos, tutorial de batería | `feature/f5-onboarding` |
 | **F6** | Pulido y publicación | `feature/f6-release` |
 
