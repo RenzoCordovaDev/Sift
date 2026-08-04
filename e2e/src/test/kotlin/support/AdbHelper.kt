@@ -311,6 +311,54 @@ class AdbHelper {
         log.info("insertBlockedCallLogEntry: inserted log for $phoneNumber reason=$reason")
     }
 
+    // ─── Manual list operations ───────────────────────────────────────────────
+
+    /**
+     * Inserts or replaces a row in the `manual_list` table for [phoneNumber] with the
+     * given [listType] name (either `"BLACKLIST"` or `"WHITELIST"`).
+     *
+     * Uses `INSERT OR REPLACE` so the call is idempotent and honours the primary-key
+     * mutual-exclusivity constraint of [com.callbloqued.sift.data.local.db.ManualListEntity]:
+     * if [phoneNumber] was already in the opposite list it is replaced atomically.
+     *
+     * The [listType] string must be the exact [com.callbloqued.sift.domain.model.ManualListType]
+     * enum name stored by Room (e.g. `"BLACKLIST"` not `"blacklist"`). An incorrect value
+     * would insert a row that [com.callbloqued.sift.data.repository.ManualListRepositoryImpl]
+     * cannot parse, silently treating the number as absent from both lists.
+     *
+     * Prerequisites: [clearAppData] and app launch must have already run so the Room schema
+     * (including the `manual_list` table added in F3) exists in the database file.
+     *
+     * @param phoneNumber Phone number in E.164 format (e.g. `"+12025550142"`).
+     * @param listType [com.callbloqued.sift.domain.model.ManualListType] enum name to store
+     *   (`"BLACKLIST"` or `"WHITELIST"`).
+     */
+    fun insertManualListEntry(phoneNumber: String, listType: String) {
+        val now = System.currentTimeMillis()
+        val sql = "INSERT OR REPLACE INTO manual_list(phone_number,list_type,added_at)" +
+            " VALUES('$phoneNumber','$listType',$now)"
+        val shellCmd = """run-as $APP_PACKAGE sqlite3 /data/data/$APP_PACKAGE/databases/$DB_NAME "$sql""""
+        execShell(shellCmd)
+        log.info("insertManualListEntry: inserted $phoneNumber as $listType")
+    }
+
+    /**
+     * Returns the `list_type` value stored in the `manual_list` table for [phoneNumber],
+     * or an empty string if no row exists or the query fails.
+     *
+     * Used by step definitions to verify that [insertManualListEntry] persisted the row
+     * correctly before the scenario proceeds to simulate a call.
+     *
+     * @param phoneNumber Phone number in E.164 format (e.g. `"+12025550142"`).
+     * @return The `list_type` string of the row (`"BLACKLIST"` or `"WHITELIST"`), or `""`
+     *   if no matching row exists.
+     */
+    fun queryManualListType(phoneNumber: String): String {
+        val sql = "SELECT list_type FROM manual_list WHERE phone_number='$phoneNumber' LIMIT 1"
+        val shellCmd = """run-as $APP_PACKAGE sqlite3 /data/data/$APP_PACKAGE/databases/$DB_NAME "$sql""""
+        return execShell(shellCmd).trim()
+    }
+
     // ─── Internal helpers ─────────────────────────────────────────────────────
 
     /**
