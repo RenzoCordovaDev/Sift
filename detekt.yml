@@ -26,7 +26,7 @@ complexity:
 style:
   MagicNumber:
     active: true
-    ignoreNumbers: ['-1', '0', '1', '2', '3']  # '3' added for Migration(2, 3) in F2
+    ignoreNumbers: ['-1', '0', '1', '2', '3', '4']  # '3' added for Migration(2,3) F2; '4' added for Migration(3,4) F3
     ignoreAnnotation: true
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false
