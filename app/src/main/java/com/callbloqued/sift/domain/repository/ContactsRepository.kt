@@ -3,11 +3,12 @@ package com.callbloqued.sift.domain.repository
 /**
  * Contract for querying the device's address book.
  *
- * Implementations live in the `data` layer and interact with [android.provider.ContactsContract].
- * This interface deliberately carries no Android imports so that the `domain` layer stays
- * framework-agnostic and can be unit-tested without an Android runtime.
+ * Implementation ([ContactsRepositoryImpl]) lives in the `data` layer and interacts with
+ * [android.provider.ContactsContract] via [ContactsContentResolverGateway]. This interface
+ * deliberately carries no Android imports so that the `domain` layer stays framework-agnostic
+ * and can be unit-tested without an Android runtime.
  *
- * Full implementation is delivered in F1 (call-screening core).
+ * Delivered in F1 (call-screening core).
  */
 interface ContactsRepository {
 
