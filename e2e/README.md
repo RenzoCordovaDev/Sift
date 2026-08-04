@@ -2,7 +2,7 @@
 
 Módulo JVM puro (no Android) que ejecuta escenarios Gherkin contra un emulador Android en ejecución, usando Appium (UIAutomator2) como driver de automatización.
 
-## Rationale
+## Justificación
 
 **¿Por qué aquí y no en `app/src/androidTest/`?**
 
