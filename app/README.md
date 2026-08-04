@@ -73,13 +73,23 @@ app/
   - Room smoke tests, comprobaciones de permisos
   - Requieren emulador/dispositivo: `./gradlew connectedDebugAndroidTest`
 
+## Estado tras F1
+
+En **F1** se implementó el **núcleo funcional completo de screening**:
+- `EvaluateIncomingCallUseCase` + 5 reglas de decisión.
+- Persistencia Room de intentos (`CallAttemptEntity` + `CallAttemptDao`).
+- Integración ContactsContract (contactos del dispositivo).
+- Settings persistentes (filtro habilitado, umbral de intentos).
+- `IncomingCallScreeningService` registrado en `AndroidManifest.xml`.
+- Tests unitarios (≥80% cobertura en `domain` y `data`).
+- Tests E2E (Gherkin/Cucumber + Appium): 3 escenarios completados + 1 pendiente.
+
 ## Próximas fases
 
 | Fase | Cambios principales |
 |---|---|
-| **F1** | `CallScreeningService` real, `EvaluateIncomingCallUseCase`, impls de repos, integración ContactsContract |
-| **F2** | Entidades Room (CallAttempt), DAO, historial de intentos |
-| **F3** | Listas manual (blacklist/whitelist), entidades y DAOs |
+| **F2** | Historial visible (pantalla de llamadas bloqueadas, detalles, análisis) |
+| **F3** | Listas manuales (blacklist/whitelist), entidades y DAOs |
 | **F4** | Pantallas reales (home, settings, history), navegación, eliminación de `PlaceholderScreen` |
 | **F5** | Onboarding, solicitud de rol y permisos |
 | **F6** | Pulido, release |

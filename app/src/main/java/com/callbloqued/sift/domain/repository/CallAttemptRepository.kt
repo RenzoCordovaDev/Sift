@@ -7,10 +7,11 @@ package com.callbloqued.sift.domain.repository
  * contact.  The repository exposes the attempt count so that [EvaluateIncomingCallUseCase]
  * can decide whether a subsequent call from the same number should be allowed through.
  *
- * Implementations live in the `data` layer using Room.  This interface carries no Android
- * imports, keeping `domain` framework-agnostic.
+ * Implementation ([CallAttemptRepositoryImpl]) lives in the `data` layer using Room
+ * ([CallAttemptEntity], [CallAttemptDao]). This interface carries no Android imports,
+ * keeping `domain` framework-agnostic.
  *
- * Full implementation is delivered in F2 (attempt history).
+ * Delivered in F1 (call-screening core).
  */
 interface CallAttemptRepository {
 

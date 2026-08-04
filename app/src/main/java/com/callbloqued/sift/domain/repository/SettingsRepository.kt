@@ -5,12 +5,12 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Contract for reading and writing user-facing application settings.
  *
- * Settings are persisted via DataStore Preferences (implementation in `data` layer).
- * Exposing settings as [Flow] lets UI and use-case layers react to changes in real time
- * without polling.
+ * Settings are persisted via DataStore Preferences. Implementation ([SettingsRepositoryImpl])
+ * in `data` layer delegates to [SettingsDataStore]. Exposing settings as [Flow] lets UI and
+ * use-case layers react to changes in real time without polling.
  *
- * Full implementation, including all preference keys and default values, is delivered in F1
- * (for screening-toggle and attempt threshold) and F5 (for onboarding completion state).
+ * F1 implementation covers screening-toggle and attempt threshold. F5 will extend with
+ * onboarding completion state and other user-facing preferences.
  */
 interface SettingsRepository {
 
