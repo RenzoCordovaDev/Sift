@@ -107,11 +107,11 @@ Además del `README.md` por módulo y el `ARCHITECTURE.md` general, **toda funci
 
 ```kotlin
 /**
- * <Qué hace la función, en una o dos líneas, en términos de negocio o técnicos claros>
+ * <What the function does in one or two lines, in clear business or technical terms>
  *
- * @param nombreParametro <qué representa, no solo el tipo>
- * @return <qué representa el valor retornado>
- * @throws NombreExcepcion <cuándo se lanza, si aplica>
+ * @param parameterName <what it represents, not just the type>
+ * @return <what the returned value represents>
+ * @throws ExceptionName <when it is thrown, if applicable>
  */
 ```
 
@@ -119,14 +119,17 @@ Además del `README.md` por módulo y el `ARCHITECTURE.md` general, **toda funci
 
 ```kotlin
 /**
- * Evalúa si una llamada entrante debe permitirse, bloquearse o marcarse como spam,
- * combinando el estado de la agenda de contactos, las listas manuales del usuario
- * y el historial de intentos previos del número.
+ * Evaluates whether an incoming call should be allowed, blocked, or flagged as spam,
+ * combining the device contact status, the user's manual lists, and the call
+ * attempt history for the caller's number.
  *
- * @param phoneNumber Número de teléfono ya normalizado en formato E.164 (ver [PhoneNumberNormalizer]).
- * @param isKnownContact Indica si el número existe en la agenda de contactos del dispositivo.
- * @return Una instancia de [CallDecision] con la acción a tomar (ALLOW, DISALLOW, DISALLOW_AS_SPAM).
- * @throws InvalidPhoneNumberException si [phoneNumber] no cumple el formato E.164 esperado.
+ * @param phoneNumber The caller's phone number, already normalized in E.164 format
+ *   (see [PhoneNumberNormalizer]).
+ * @param isKnownContact Whether the number exists in the device's contact list.
+ * @return A [CallDecision] instance describing the action to take
+ *   (ALLOW, DISALLOW, DISALLOW_AS_SPAM).
+ * @throws InvalidPhoneNumberException if [phoneNumber] does not conform to the
+ *   expected E.164 format.
  */
 fun evaluateIncomingCall(
     phoneNumber: String,
@@ -136,9 +139,9 @@ fun evaluateIncomingCall(
 
 ### Reglas específicas
 
-1. **Prohibido** documentar solo con frases vacías (ej. `/** Evalúa la llamada */` sin `@param`/`@return`) cuando la función tiene parámetros o valor de retorno.
+1. **Prohibido** documentar solo con frases vacías (ej. `/** Evaluates the call */` sin `@param`/`@return`) cuando la función tiene parámetros o valor de retorno.
 2. Las funciones triviales de una línea (getters simples, mappers directos evidentes) pueden omitir KDoc completo, pero **no** funciones de lógica de negocio, aunque sean cortas.
-3. El idioma de la documentación de código (KDoc, comentarios, nombres de variables) es **español**, consistente con el resto del proyecto, salvo términos técnicos estándar en inglés (ej. `callback`, `use case`).
+3. El idioma de la documentación de código (KDoc, comentarios, nombres de variables) es **inglés**, consistente con el requisito de sección 2, sin excepción. Esto incluye todos los términos, no solo los técnicos.
 4. Toda clase pública lleva KDoc de clase explicando su responsabilidad (ya definido en `DEVELOPMENT_STANDARDS.md` sección 8; este documento lo extiende a nivel de función).
 5. Si una función cambia de comportamiento en un PR, su KDoc **debe actualizarse en el mismo commit/PR** — un KDoc desactualizado se trata como un bug de documentación.
 
