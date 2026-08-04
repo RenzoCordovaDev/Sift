@@ -3,10 +3,12 @@ package com.callbloqued.sift.core.di
 import com.callbloqued.sift.data.repository.CallAttemptRepositoryImpl
 import com.callbloqued.sift.data.repository.CallLogRepositoryImpl
 import com.callbloqued.sift.data.repository.ContactsRepositoryImpl
+import com.callbloqued.sift.data.repository.ManualListRepositoryImpl
 import com.callbloqued.sift.data.repository.SettingsRepositoryImpl
 import com.callbloqued.sift.domain.repository.CallAttemptRepository
 import com.callbloqued.sift.domain.repository.CallLogRepository
 import com.callbloqued.sift.domain.repository.ContactsRepository
+import com.callbloqued.sift.domain.repository.ManualListRepository
 import com.callbloqued.sift.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
@@ -78,4 +80,16 @@ abstract class RepositoryModule {
     abstract fun bindCallLogRepository(
         impl: CallLogRepositoryImpl
     ): CallLogRepository
+
+    /**
+     * Binds [ManualListRepositoryImpl] as the singleton provider of [ManualListRepository].
+     *
+     * @param impl The concrete Room-backed implementation injected by Hilt.
+     * @return The bound [ManualListRepository] interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindManualListRepository(
+        impl: ManualListRepositoryImpl
+    ): ManualListRepository
 }
