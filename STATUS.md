@@ -7,7 +7,7 @@ Actualizado por el Agente de Reporte. Ver `AGENTS_WORKFLOW.md` sección 10.
 | F0 - Setup | ✅ Completo (mergeado a develop) | — | Cobertura domain/data: 100% (JaCoCo) | 2026-08-03 |
 | F1 - Núcleo screening | ✅ Completo (mergeado a develop) | — | PASS (certificado en sesión; escenarios E2E escritos, no ejecutados por falta de emulador) | 2026-08-04 |
 | F2 - Historial de intentos | ✅ Completo (mergeado a develop) | — | PASS (PR #8, comentario formal publicado) | 2026-08-04 |
-| F3 - Listas manuales | ⏳ Pendiente | — | — | — |
+| F3 - Listas manuales | ✅ Completo (mergeado a develop) | — | PASS (PR #11, comentario formal publicado) | 2026-08-04 |
 | F4 - UI | ⏳ Pendiente | — | — | — |
 | F5 - Onboarding | ⏳ Pendiente | — | — | — |
 | F6 - Pulido y publicación | ⏳ Pendiente | — | — | — |
@@ -35,5 +35,11 @@ No corren automáticamente vía git hook — se ejecutan manualmente (o por un a
 - **Cierre de brecha QA→PR (F1):** agente QA ahora publica comentario formal en el PR (verificable públicamente en GitHub), cerrando el gap de proceso documentado en F1. Ejemplo: PR #8 de F2 recibió certificación QA formal publicada.
 - **E2E Gherkin (F2):** 2 escenarios en `e2e/src/test/resources/features/f2_attempt_history.feature`: primer intento de número desconocido se registra en el log de bloqueados (`@BlockedCallLogged`), implementado y verificable vía adb SQLite. Segundo intento aparece en la pantalla de historial (`@HistoryScreen @PendingUI`), pendiente de F4 porque depende de la UI. No ejecutados en emulador (mismo motivo que F1).
 
+### F3 - Composición de repositorios y corrección de contradicción documentaria
+- **Incidente de commitlint (header > 100 caracteres):** un commit del agente Test Unitario en la rama de F3 excedía el límite de 100 caracteres en el header de Conventional Commits. El agente Test Unitario reescribió el mensaje de commit usando `git commit-tree` + `rebase --onto` (sin modificar código) y realizó un force-push a su rama aún no mergeada. Revisión de Código republicó su veredicto APPROVE sobre el nuevo HEAD; el Orquestador mergeó a continuación sin incidentes. Sin impacto en código; procedimental puro.
+- **Estructura de entrega:** PR #11 (código+tests) introdujo `ManualListType`, `ManualListEntry` y `ManualListRepository` en capas domain/data; `ManualListEntity`/DAO Room; migración 3→4; y `ScreeningRepositories` (nueva data class que agrupa `ContactsRepository`, `CallAttemptRepository`, `SettingsRepository` y `ManualListRepository` para mantener el límite de 5 parámetros en `EvaluateIncomingCallUseCase`). Flujo de decisión expandido a 7 pasos: 1) contacto conocido → ALLOW, 2) en blacklist manual → DISALLOW, 3) en whitelist manual → ALLOW, 4-7) lógica configurable de intentos según F2. Cobertura JaCoCo: 92% (domain+data). Tests unitarios nuevos: `ManualListRepositoryImplTest` (22 tests) + `EvaluateIncomingCallUseCaseTest` actualizado (8 branches de decisión).
+- **E2E Gherkin (F3):** 4 escenarios en `f3_manual_lists.feature`: `@ManualBlacklisted @FirstAttempt`, `@ManualWhitelisted @FirstAttempt`, `@KnownContactOverridesBlacklist` implementados y listos; `@ListManagementScreen @PendingUI` pendiente de F4. No ejecutados en emulador (sin emulador disponible, igual que F1/F2).
+- **Corrección de contradicción en `CODE_QUALITY_STANDARDS.md`:** PR #12 (documentación) corrigió la sección 5 regla 3 que decía "KDoc en español", contradiciendo la sección 2 y la práctica real en F1-F3 (KDoc en inglés, coherente con `CLAUDE.md`). Ahora especifica "KDoc en inglés", alineado con los estándares del proyecto.
+
 ### Deuda técnica heredada
-- **ktlint:** no se configuró en F0 ni F1 ni F2. Mencionado por el revisor de código en F1; se diferirá a una fase futura si es necesario (no es bloqueador actual).
+- **ktlint:** no se configuró en F0 ni F1 ni F2 ni F3. Mencionado por el revisor de código en F1; se diferirá a una fase futura si es necesario (no es bloqueador actual).
