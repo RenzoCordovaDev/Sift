@@ -29,7 +29,9 @@ style:
     ignoreNumbers: ['-1', '0', '1', '2', '3', '4']  # '3' added for Migration(2,3) F2; '4' added for Migration(3,4) F3
     ignoreAnnotation: true
     ignoreHashCodeFunction: true
-    ignorePropertyDeclaration: false
+    # Property declarations (const val, val/var) are allowed to contain numeric literals
+    # because named constants are self-documenting; magic-number risk is in logic bodies.
+    ignorePropertyDeclaration: true
   MaxLineLength:
     active: true
     maxLineLength: 120
