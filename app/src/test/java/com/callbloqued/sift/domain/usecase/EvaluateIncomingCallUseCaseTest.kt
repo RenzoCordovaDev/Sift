@@ -1,7 +1,9 @@
 package com.callbloqued.sift.domain.usecase
 
+import com.callbloqued.sift.domain.model.BlockReason
 import com.callbloqued.sift.domain.model.CallDecision
 import com.callbloqued.sift.domain.repository.CallAttemptRepository
+import com.callbloqued.sift.domain.repository.CallLogRepository
 import com.callbloqued.sift.domain.repository.ContactsRepository
 import com.callbloqued.sift.domain.repository.SettingsRepository
 import com.callbloqued.sift.domain.util.PhoneNumberNormalizer
@@ -28,8 +30,15 @@ import org.junit.jupiter.api.Test
  * 2. Number not normalizable → [CallDecision.Allow].
  * 3. Number is a known contact → [CallDecision.Allow].
  * 4. Previous attempts >= configured threshold → [CallDecision.Allow].
- * 5. First call from unknown number → [CallDecision.DisallowSilently] + attempt recorded.
- * 6. Nth call still below threshold → [CallDecision.DisallowSilently] + attempt recorded.
+ * 5. First call from unknown number → [CallDecision.DisallowSilently] + attempt recorded +
+ *    blocked-call event logged.
+ * 6. Nth call still below threshold → [CallDecision.DisallowSilently] + attempt recorded +
+ *    blocked-call event logged.
+ *
+ * CallLogRepository wiring (F2):
+ * - [CallLogRepository.logBlockedCall] is called exactly once with the normalized number and
+ *   [BlockReason.ATTEMPT_THRESHOLD] for every [CallDecision.DisallowSilently] outcome.
+ * - [CallLogRepository.logBlockedCall] is never called for any [CallDecision.Allow] outcome.
  */
 class EvaluateIncomingCallUseCaseTest {
 
@@ -37,6 +46,7 @@ class EvaluateIncomingCallUseCaseTest {
     private lateinit var callAttemptRepository: CallAttemptRepository
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var normalizer: PhoneNumberNormalizer
+    private lateinit var callLogRepository: CallLogRepository
     private lateinit var useCase: EvaluateIncomingCallUseCase
 
     @BeforeEach
@@ -45,11 +55,13 @@ class EvaluateIncomingCallUseCaseTest {
         callAttemptRepository = mockk()
         settingsRepository = mockk()
         normalizer = mockk()
+        callLogRepository = mockk()
         useCase = EvaluateIncomingCallUseCase(
             contactsRepository,
             callAttemptRepository,
             settingsRepository,
-            normalizer
+            normalizer,
+            callLogRepository
         )
     }
 
@@ -64,6 +76,7 @@ class EvaluateIncomingCallUseCaseTest {
         coVerify(exactly = 0) { contactsRepository.isKnownContact(any()) }
         coVerify(exactly = 0) { callAttemptRepository.getAttemptCount(any()) }
         coVerify(exactly = 0) { callAttemptRepository.recordAttempt(any()) }
+        coVerify(exactly = 0) { callLogRepository.logBlockedCall(any(), any()) }
     }
 
     @Test
@@ -76,6 +89,7 @@ class EvaluateIncomingCallUseCaseTest {
         assertEquals(CallDecision.Allow, result)
         coVerify(exactly = 0) { contactsRepository.isKnownContact(any()) }
         coVerify(exactly = 0) { callAttemptRepository.recordAttempt(any()) }
+        coVerify(exactly = 0) { callLogRepository.logBlockedCall(any(), any()) }
     }
 
     @Test
@@ -89,6 +103,7 @@ class EvaluateIncomingCallUseCaseTest {
         assertEquals(CallDecision.Allow, result)
         coVerify(exactly = 0) { callAttemptRepository.getAttemptCount(any()) }
         coVerify(exactly = 0) { callAttemptRepository.recordAttempt(any()) }
+        coVerify(exactly = 0) { callLogRepository.logBlockedCall(any(), any()) }
     }
 
     @Test
@@ -103,6 +118,7 @@ class EvaluateIncomingCallUseCaseTest {
 
         assertEquals(CallDecision.Allow, result)
         coVerify(exactly = 0) { callAttemptRepository.recordAttempt(any()) }
+        coVerify(exactly = 0) { callLogRepository.logBlockedCall(any(), any()) }
     }
 
     @Test
@@ -117,6 +133,7 @@ class EvaluateIncomingCallUseCaseTest {
 
         assertEquals(CallDecision.Allow, result)
         coVerify(exactly = 0) { callAttemptRepository.recordAttempt(any()) }
+        coVerify(exactly = 0) { callLogRepository.logBlockedCall(any(), any()) }
     }
 
     @Test
@@ -128,11 +145,15 @@ class EvaluateIncomingCallUseCaseTest {
             every { settingsRepository.getRequiredAttemptCount() } returns flowOf(1)
             coEvery { callAttemptRepository.getAttemptCount("+15551234567") } returns 0
             coEvery { callAttemptRepository.recordAttempt("+15551234567") } returns Unit
+            coEvery { callLogRepository.logBlockedCall(any(), any()) } returns Unit
 
             val result = useCase("+15551234567")
 
             assertEquals(CallDecision.DisallowSilently, result)
             coVerify(exactly = 1) { callAttemptRepository.recordAttempt("+15551234567") }
+            coVerify(exactly = 1) {
+                callLogRepository.logBlockedCall("+15551234567", BlockReason.ATTEMPT_THRESHOLD)
+            }
         }
 
     @Test
@@ -144,11 +165,15 @@ class EvaluateIncomingCallUseCaseTest {
             every { settingsRepository.getRequiredAttemptCount() } returns flowOf(2)
             coEvery { callAttemptRepository.getAttemptCount("+15551234567") } returns 1
             coEvery { callAttemptRepository.recordAttempt("+15551234567") } returns Unit
+            coEvery { callLogRepository.logBlockedCall(any(), any()) } returns Unit
 
             val result = useCase("+15551234567")
 
             assertEquals(CallDecision.DisallowSilently, result)
             coVerify(exactly = 1) { callAttemptRepository.recordAttempt("+15551234567") }
+            coVerify(exactly = 1) {
+                callLogRepository.logBlockedCall("+15551234567", BlockReason.ATTEMPT_THRESHOLD)
+            }
         }
 
     @Test
@@ -163,6 +188,7 @@ class EvaluateIncomingCallUseCaseTest {
 
         assertEquals(CallDecision.Allow, result)
         coVerify(exactly = 0) { callAttemptRepository.recordAttempt(any()) }
+        coVerify(exactly = 0) { callLogRepository.logBlockedCall(any(), any()) }
     }
 
     @Test
@@ -175,11 +201,60 @@ class EvaluateIncomingCallUseCaseTest {
         every { settingsRepository.getRequiredAttemptCount() } returns flowOf(1)
         coEvery { callAttemptRepository.getAttemptCount(normalized) } returns 0
         coEvery { callAttemptRepository.recordAttempt(normalized) } returns Unit
+        coEvery { callLogRepository.logBlockedCall(any(), any()) } returns Unit
 
         useCase(rawNumber)
 
         coVerify(exactly = 1) { contactsRepository.isKnownContact(normalized) }
         coVerify(exactly = 1) { callAttemptRepository.getAttemptCount(normalized) }
         coVerify(exactly = 1) { callAttemptRepository.recordAttempt(normalized) }
+        coVerify(exactly = 1) { callLogRepository.logBlockedCall(normalized, any()) }
     }
+
+    // ─── CallLogRepository wiring (F2) ───────────────────────────────────────
+
+    @Test
+    fun `invoke should log block with ATTEMPT_THRESHOLD reason when call is blocked on first attempt`() =
+        runTest {
+            every { settingsRepository.isFilterEnabled() } returns flowOf(true)
+            every { normalizer.normalize(any()) } returns "+15551234567"
+            coEvery { contactsRepository.isKnownContact("+15551234567") } returns false
+            every { settingsRepository.getRequiredAttemptCount() } returns flowOf(1)
+            coEvery { callAttemptRepository.getAttemptCount("+15551234567") } returns 0
+            coEvery { callAttemptRepository.recordAttempt(any()) } returns Unit
+            coEvery { callLogRepository.logBlockedCall(any(), any()) } returns Unit
+
+            useCase("+15551234567")
+
+            coVerify(exactly = 1) {
+                callLogRepository.logBlockedCall("+15551234567", BlockReason.ATTEMPT_THRESHOLD)
+            }
+        }
+
+    @Test
+    fun `invoke should not call logBlockedCall when number belongs to a contact`() = runTest {
+        every { settingsRepository.isFilterEnabled() } returns flowOf(true)
+        every { normalizer.normalize(any()) } returns "+15551234567"
+        coEvery { contactsRepository.isKnownContact("+15551234567") } returns true
+
+        useCase("+15551234567")
+
+        coVerify(exactly = 0) { callLogRepository.logBlockedCall(any(), any()) }
+    }
+
+    @Test
+    fun `invoke should call logBlockedCall exactly once not twice when DisallowSilently`() =
+        runTest {
+            every { settingsRepository.isFilterEnabled() } returns flowOf(true)
+            every { normalizer.normalize(any()) } returns "+15551234567"
+            coEvery { contactsRepository.isKnownContact("+15551234567") } returns false
+            every { settingsRepository.getRequiredAttemptCount() } returns flowOf(3)
+            coEvery { callAttemptRepository.getAttemptCount("+15551234567") } returns 0
+            coEvery { callAttemptRepository.recordAttempt(any()) } returns Unit
+            coEvery { callLogRepository.logBlockedCall(any(), any()) } returns Unit
+
+            useCase("+15551234567")
+
+            coVerify(exactly = 1) { callLogRepository.logBlockedCall(any(), any()) }
+        }
 }
