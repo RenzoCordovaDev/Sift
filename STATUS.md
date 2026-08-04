@@ -36,4 +36,4 @@ No corren automáticamente vía git hook — se ejecutan manualmente (o por un a
 - **E2E Gherkin (F2):** 2 escenarios en `e2e/src/test/resources/features/f2_attempt_history.feature`: primer intento de número desconocido se registra en el log de bloqueados (`@BlockedCallLogged`), implementado y verificable vía adb SQLite. Segundo intento aparece en la pantalla de historial (`@HistoryScreen @PendingUI`), pendiente de F4 porque depende de la UI. No ejecutados en emulador (mismo motivo que F1).
 
 ### Deuda técnica heredada
-- **ktlint:** no se configuró en F0 ni F1. Mencionado por el revisor de código en F1; se repriorizará en F2 si es necesario.
+- **ktlint:** no se configuró en F0 ni F1 ni F2. Mencionado por el revisor de código en F1; se diferirá a una fase futura si es necesario (no es bloqueador actual).
