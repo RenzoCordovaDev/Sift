@@ -3,7 +3,7 @@ package support
 import java.util.logging.Logger
 
 /**
- * Thin wrapper around ADB shell and emulator-console commands needed by the F1 E2E tests.
+ * Thin wrapper around ADB shell and emulator-console commands used by the Sift E2E test suite.
  *
  * All methods execute `adb` (or the serial-qualified variant if the `adb.serial` system
  * property is set) as a child process on the HOST machine. The emulator must already be
@@ -241,6 +241,74 @@ class AdbHelper {
         val shellCmd = """run-as $APP_PACKAGE sqlite3 /data/data/$APP_PACKAGE/databases/$DB_NAME "$sql""""
         execShell(shellCmd)
         log.info("insertCallAttempt: inserted $phoneNumber with count=$attemptCount")
+    }
+
+    // ─── Blocked-call event log ───────────────────────────────────────────────
+
+    /**
+     * Returns the number of rows in the `blocked_call_log` table for [phoneNumber].
+     *
+     * Queries the Room SQLite database directly via `run-as` + `sqlite3`. Used by F2 E2E
+     * scenarios to verify that [com.callbloqued.sift.domain.usecase.EvaluateIncomingCallUseCase]
+     * persisted a blocked-call event (via [com.callbloqued.sift.domain.repository.CallLogRepository])
+     * after silently rejecting a call.
+     *
+     * Unlike [queryAttemptCount], which reads the aggregate attempt count from `call_attempts`,
+     * this method counts individual event rows in `blocked_call_log` — a distinct table added
+     * in F2 that records every discrete block event for the user-visible call history.
+     *
+     * Prerequisites: same as [queryAttemptCount] — debuggable APK, sqlite3 on the emulator.
+     *
+     * @param phoneNumber Phone number in E.164 format (e.g. "+12025550182").
+     * @return Count of rows in `blocked_call_log` matching [phoneNumber], or 0 on error.
+     */
+    fun queryBlockedCallLogCount(phoneNumber: String): Int {
+        val sql = "SELECT COUNT(*) FROM blocked_call_log WHERE phone_number='$phoneNumber'"
+        val shellCmd = """run-as $APP_PACKAGE sqlite3 /data/data/$APP_PACKAGE/databases/$DB_NAME "$sql""""
+        val result = execShell(shellCmd).trim()
+        return result.toIntOrNull().also {
+            if (it == null) log.warning("queryBlockedCallLogCount: non-integer output for $phoneNumber: '$result'")
+        } ?: 0
+    }
+
+    /**
+     * Returns the `reason` value of the most recent `blocked_call_log` entry for [phoneNumber].
+     *
+     * The reason is stored as the name of a [com.callbloqued.sift.domain.model.BlockReason]
+     * enum value (e.g. `"ATTEMPT_THRESHOLD"`). Returns an empty string if no matching row
+     * exists or if the query fails.
+     *
+     * @param phoneNumber Phone number in E.164 format (e.g. "+12025550182").
+     * @return The reason string of the latest log entry, or an empty string if none found.
+     */
+    fun queryBlockedCallLogReason(phoneNumber: String): String {
+        val sql = "SELECT reason FROM blocked_call_log" +
+            " WHERE phone_number='$phoneNumber' ORDER BY timestamp DESC LIMIT 1"
+        val shellCmd = """run-as $APP_PACKAGE sqlite3 /data/data/$APP_PACKAGE/databases/$DB_NAME "$sql""""
+        return execShell(shellCmd).trim()
+    }
+
+    /**
+     * Inserts one row into the `blocked_call_log` table for [phoneNumber] with the current
+     * system timestamp and the given [reason].
+     *
+     * Used by scenarios that need a pre-existing log entry without having to simulate a call.
+     * The auto-generated `id` column is handled by Room's `AUTOINCREMENT` constraint.
+     *
+     * Prerequisites: [clearAppData] and app launch must have already run so the Room schema
+     * (including the `blocked_call_log` table added in F2) exists in the database file.
+     *
+     * @param phoneNumber Phone number in E.164 format.
+     * @param reason [com.callbloqued.sift.domain.model.BlockReason] enum name to store
+     *   (e.g. `"ATTEMPT_THRESHOLD"`).
+     */
+    fun insertBlockedCallLogEntry(phoneNumber: String, reason: String = "ATTEMPT_THRESHOLD") {
+        val now = System.currentTimeMillis()
+        val sql = "INSERT INTO blocked_call_log(phone_number,timestamp,reason)" +
+            " VALUES('$phoneNumber',$now,'$reason')"
+        val shellCmd = """run-as $APP_PACKAGE sqlite3 /data/data/$APP_PACKAGE/databases/$DB_NAME "$sql""""
+        execShell(shellCmd)
+        log.info("insertBlockedCallLogEntry: inserted log for $phoneNumber reason=$reason")
     }
 
     // ─── Internal helpers ─────────────────────────────────────────────────────
