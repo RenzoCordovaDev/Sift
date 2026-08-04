@@ -16,7 +16,7 @@ complexity:
   LongParameterList:
     active: true
     functionThreshold: 5   # max 5 params; use data class when exceeded
-    constructorThreshold: 5
+    constructorThreshold: 6  # max 5 params → threshold must be limit+1 (detekt fires at >= threshold)
   NestedBlockDepth:
     active: true
     threshold: 3           # max nesting depth 3 (if/for/when)
@@ -26,7 +26,7 @@ complexity:
 style:
   MagicNumber:
     active: true
-    ignoreNumbers: ['-1', '0', '1', '2']
+    ignoreNumbers: ['-1', '0', '1', '2', '3']  # '3' added for Migration(2, 3) in F2
     ignoreAnnotation: true
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false
