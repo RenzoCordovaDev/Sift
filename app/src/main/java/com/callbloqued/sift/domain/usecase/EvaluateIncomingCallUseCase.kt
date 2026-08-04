@@ -1,7 +1,9 @@
 package com.callbloqued.sift.domain.usecase
 
+import com.callbloqued.sift.domain.model.BlockReason
 import com.callbloqued.sift.domain.model.CallDecision
 import com.callbloqued.sift.domain.repository.CallAttemptRepository
+import com.callbloqued.sift.domain.repository.CallLogRepository
 import com.callbloqued.sift.domain.repository.ContactsRepository
 import com.callbloqued.sift.domain.repository.SettingsRepository
 import com.callbloqued.sift.domain.util.PhoneNumberNormalizer
@@ -23,20 +25,23 @@ import javax.inject.Inject
  *    (non-negotiable rule: known contacts are never blocked).
  * 4. If the number has already been blocked ≥ [SettingsRepository.getRequiredAttemptCount]
  *    times → [CallDecision.Allow] (caller has persisted; treat as legitimate).
- * 5. Otherwise → record the attempt and return [CallDecision.DisallowSilently].
+ * 5. Otherwise → record the attempt in [CallAttemptRepository], log the block event in
+ *    [CallLogRepository], and return [CallDecision.DisallowSilently].
  *
- * **Out of scope for F1:** manual blacklist/whitelist checks (added in F3).
+ * **Out of scope for F1/F2:** manual blacklist/whitelist checks (added in F3).
  *
  * @param contactsRepository Used to check whether the caller is a known device contact.
- * @param callAttemptRepository Used to read and write blocked-attempt history.
+ * @param callAttemptRepository Used to read and write blocked-attempt aggregate history.
  * @param settingsRepository Used to read the filter-enabled flag and the attempt threshold.
  * @param normalizer Used to convert the raw caller number to a canonical E.164 string.
+ * @param callLogRepository Used to persist individual blocked-call events for user history.
  */
 class EvaluateIncomingCallUseCase @Inject constructor(
     private val contactsRepository: ContactsRepository,
     private val callAttemptRepository: CallAttemptRepository,
     private val settingsRepository: SettingsRepository,
-    private val normalizer: PhoneNumberNormalizer
+    private val normalizer: PhoneNumberNormalizer,
+    private val callLogRepository: CallLogRepository
 ) {
 
     /**
@@ -72,8 +77,21 @@ class EvaluateIncomingCallUseCase @Inject constructor(
         return if (previousAttempts >= requiredAttempts) {
             CallDecision.Allow
         } else {
-            callAttemptRepository.recordAttempt(normalizedNumber)
+            recordAndLogBlock(normalizedNumber)
             CallDecision.DisallowSilently
         }
+    }
+
+    /**
+     * Records the blocked attempt in the aggregate history and logs the individual event.
+     *
+     * Extracted to keep [invoke] within complexity limits. Both writes are performed
+     * sequentially; a failure in [callLogRepository] does not roll back the attempt record.
+     *
+     * @param normalizedNumber The caller's phone number in E.164 format.
+     */
+    private suspend fun recordAndLogBlock(normalizedNumber: String) {
+        callAttemptRepository.recordAttempt(normalizedNumber)
+        callLogRepository.logBlockedCall(normalizedNumber, BlockReason.ATTEMPT_THRESHOLD)
     }
 }
