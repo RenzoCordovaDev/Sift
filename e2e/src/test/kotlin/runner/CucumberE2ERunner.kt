@@ -18,13 +18,13 @@ import org.junit.platform.suite.api.Suite
  *
  * **Run command**:
  * ```
- * ./gradlew :e2e:test
+ * ./gradlew :e2e:e2eTest
  * ```
  * Add `-Dappium.url=http://127.0.0.1:4723` and `-Dadb.serial=emulator-5554` as needed.
  *
  * **Tag filtering** (Cucumber's standard tag expression syntax):
  * ```
- * ./gradlew :e2e:test -Dcucumber.filter.tags="@KnownContact or @FirstAttempt"
+ * ./gradlew :e2e:e2eTest -Dcucumber.filter.tags="@KnownContact or @FirstAttempt"
  * ```
  *
  * Scenarios tagged with [@PendingUI] will appear in the report as PENDING rather than
