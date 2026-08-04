@@ -14,9 +14,15 @@
 //   5. ADB is in PATH (provided by Android SDK; see LOCAL_AUTOMATION_SETUP.md).
 //
 // Run command:
-//   ./gradlew :e2e:test
+//   ./gradlew :e2e:e2eTest
 //       -Dappium.url=http://127.0.0.1:4723    (default; override if server is remote)
 //       -Dadb.serial=emulator-5554             (optional; required with multiple devices)
+//
+// A custom `e2eTest` task is used instead of the standard `test` task (whose default `tasks.test`
+// is disabled below) because `./gradlew test` at the repo root runs the `test` task of every
+// subproject by name, including :app:test. If this module's scenarios ran under that same name,
+// a plain `./gradlew test` — used by scripts/status-checks/unit-tests.sh and any dev running unit
+// tests without an emulator handy — would always fail here with no Appium server/emulator running.
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -24,10 +30,6 @@ plugins {
 
 kotlin {
     jvmToolchain(17)
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
@@ -49,6 +51,16 @@ dependencies {
 }
 
 tasks.test {
+    enabled = false
+}
+
+tasks.register<Test>("e2eTest") {
+    group = "verification"
+    description = "Runs the Cucumber/Appium E2E scenarios against a running emulator."
+
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+
     useJUnitPlatform()
     // Propagate system properties so test code can read -D flags passed on the command line.
     systemProperty("appium.url", System.getProperty("appium.url", "http://127.0.0.1:4723"))
