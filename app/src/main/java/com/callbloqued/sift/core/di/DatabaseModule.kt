@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.callbloqued.sift.data.local.db.AppDatabase
 import com.callbloqued.sift.data.local.db.BlockedCallLogDao
 import com.callbloqued.sift.data.local.db.CallAttemptDao
+import com.callbloqued.sift.data.local.db.ManualListDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,6 +37,7 @@ object DatabaseModule {
      * **Migration history:**
      * - [AppDatabase.MIGRATION_1_2]: v1 (F0 placeholder) → v2 (F1 CallAttemptEntity).
      * - [AppDatabase.MIGRATION_2_3]: v2 (F1) → v3 (F2 BlockedCallLogEntity).
+     * - [AppDatabase.MIGRATION_3_4]: v3 (F2) → v4 (F3 ManualListEntity).
      *
      * @param context Application context used by Room to locate the database file.
      * @return The singleton [AppDatabase] instance.
@@ -52,7 +54,8 @@ object DatabaseModule {
         )
             .addMigrations(
                 AppDatabase.MIGRATION_1_2,
-                AppDatabase.MIGRATION_2_3
+                AppDatabase.MIGRATION_2_3,
+                AppDatabase.MIGRATION_3_4
             )
             .build()
 
@@ -78,4 +81,17 @@ object DatabaseModule {
     @Provides
     fun provideBlockedCallLogDao(database: AppDatabase): BlockedCallLogDao =
         database.blockedCallLogDao()
+
+    /**
+     * Provides the [ManualListDao] obtained directly from the [AppDatabase] singleton.
+     *
+     * Room generates a single DAO implementation per database instance, so this provider
+     * effectively acts as a singleton even without the [Singleton] annotation.
+     *
+     * @param database The application-scoped [AppDatabase] from which the DAO is retrieved.
+     * @return The Room-generated [ManualListDao] implementation.
+     */
+    @Provides
+    fun provideManualListDao(database: AppDatabase): ManualListDao =
+        database.manualListDao()
 }
