@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Base application theme used by the Android activity window before Compose takes
+        over rendering. The parent is the SDK built-in Material light theme (available
+        since API 21, well within minSdk 29) with the action bar suppressed.
+
+        Theme.Material3.DayNight.NoActionBar is intentionally avoided here: that style
+        comes from the View-based com.google.android.material library, which is not a
+        project dependency. This app is pure-Compose; the Compose layer handles its own
+        theming via SiftTheme (presentation/theme/SiftTheme.kt).
+    -->
+    <style name="Theme.Sift" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sift</string>
+    <!-- Placeholder text shown during F0 scaffold; replaced by real UI in F4 -->
+    <string name="placeholder_setup_complete">Sift is ready. Real UI coming in F4.</string>
+</resources>

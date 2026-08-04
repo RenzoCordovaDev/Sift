@@ -27,3 +27,19 @@ secrets.*
 
 # E2E
 /e2e/build/
+
+# Room — schema export files ARE committed (for migration history); build output is not
+/app/build/
+
+# detekt / ktlint report output
+/build/reports/detekt/
+/build/reports/ktlint/
+
+# Gradle wrapper binary IS committed (needed to bootstrap the build without a local Gradle install)
+# !gradle/wrapper/gradle-wrapper.jar
+
+# Node.js (commitlint tooling, see scripts/status-checks/)
+node_modules/
+
+# Local git worktrees used by agent sessions (see LOCAL_AUTOMATION_SETUP.md section 7)
+/.claude/worktrees/

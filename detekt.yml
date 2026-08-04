@@ -1,0 +1,90 @@
+# detekt static-analysis configuration for Sift.
+# Thresholds match CODE_QUALITY_STANDARDS.md section 4 exactly.
+# This file is read by the root build.gradle.kts detekt configuration block.
+
+build:
+  maxIssues: 0          # Fail on any finding of the enabled rules
+  excludeCorrectable: false
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 40          # max 40 lines per function (CODE_QUALITY_STANDARDS.md §4)
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 10          # max cyclomatic complexity 10
+  LongParameterList:
+    active: true
+    functionThreshold: 5   # max 5 params; use data class when exceeded
+    constructorThreshold: 6  # max 5 params → threshold must be limit+1 (detekt fires at >= threshold)
+  NestedBlockDepth:
+    active: true
+    threshold: 3           # max nesting depth 3 (if/for/when)
+  TooManyFunctions:
+    active: false          # Not enforced for now; revisit in F4+
+
+style:
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2', '3']  # '3' added for Migration(2, 3) in F2
+    ignoreAnnotation: true
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  UnusedPrivateMember:
+    active: true
+    # @Preview composables are only invoked by Android Studio tooling, never by
+    # compiled code, so they read as unused without this exclusion.
+    allowedNames: '_|ignored|expected|serialVersionUID|.*Preview'
+  ReturnCount:
+    active: true
+    # Linear decision-flow functions (e.g. EvaluateIncomingCallUseCase) need more than
+    # the default of 2. The project quality standard limits cyclomatic complexity to 10
+    # (CODE_QUALITY_STANDARDS.md §4), which already guards against overly complex logic;
+    # an additional return-count cap would force unnecessary intermediate variables.
+    max: 5
+    excludeLabeled: false
+    excludeReturnFromLambda: true
+
+naming:
+  FunctionNaming:
+    active: true
+    # Allows lowerCamelCase, backtick test names, and PascalCase for @Composable
+    # functions (Compose convention) since this detekt version has no
+    # annotation-based exclusion for FunctionNaming.
+    functionPattern: '([a-z][a-zA-Z0-9]*)|([A-Z][a-zA-Z0-9]*)|(`[^`]+`)'
+  VariableNaming:
+    active: true
+    variablePattern: '[a-z][A-Za-z0-9]*'
+  TopLevelPropertyNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Z0-9]*'   # replaces the non-existent ConstantNaming rule
+  ObjectPropertyNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Z0-9]*'   # covers companion-object / object consts
+
+comments:
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicClass:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - Exception
+      - Throwable
+      - RuntimeException
+
+empty-blocks:
+  EmptyCatchBlock:
+    active: true          # Prohibit silent catch blocks (CODE_QUALITY_STANDARDS.md §8)
+
+# Exclude generated code from detekt analysis
+output-reports:
+  active: true
