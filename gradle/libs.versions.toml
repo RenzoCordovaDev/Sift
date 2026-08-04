@@ -18,6 +18,9 @@ detekt                   = "1.23.7"
 androidx-core-ktx        = "1.15.0"
 androidx-lifecycle       = "2.8.7"
 androidx-activity        = "1.9.3"
+junit-platform           = "1.11.3"
+cucumber                 = "7.20.1"
+appium-java-client       = "9.3.0"
 
 [libraries]
 # Android core
@@ -67,6 +70,18 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 # Unit testing — Turbine (Flow test assertion helper)
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
+# E2E testing — JUnit Platform suite runner
+junit-platform-suite        = { group = "org.junit.platform", name = "junit-platform-suite",        version.ref = "junit-platform" }
+junit-platform-suite-engine = { group = "org.junit.platform", name = "junit-platform-suite-engine", version.ref = "junit-platform" }
+
+# E2E testing — Cucumber-JVM (Gherkin runner + PicoContainer DI)
+cucumber-java                   = { group = "io.cucumber", name = "cucumber-java",                   version.ref = "cucumber" }
+cucumber-junit-platform-engine  = { group = "io.cucumber", name = "cucumber-junit-platform-engine",  version.ref = "cucumber" }
+cucumber-picocontainer          = { group = "io.cucumber", name = "cucumber-picocontainer",          version.ref = "cucumber" }
+
+# E2E testing — Appium Java client (UIAutomator2 driver for Android)
+appium-java-client = { group = "io.appium", name = "java-client", version.ref = "appium-java-client" }
+
 [plugins]
 android-application = { id = "com.android.application",             version.ref = "agp" }
 kotlin-android      = { id = "org.jetbrains.kotlin.android",        version.ref = "kotlin" }
@@ -75,3 +90,4 @@ hilt                = { id = "com.google.dagger.hilt.android",      version.ref 
 ksp                 = { id = "com.google.devtools.ksp",             version.ref = "ksp" }
 android-junit5      = { id = "de.mannodermaus.android-junit5",      version.ref = "android-junit5" }
 detekt              = { id = "io.gitlab.arturbosch.detekt",         version.ref = "detekt" }
+kotlin-jvm          = { id = "org.jetbrains.kotlin.jvm",            version.ref = "kotlin" }
