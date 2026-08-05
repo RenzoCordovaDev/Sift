@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.callbloqued.sift.presentation.placeholder.PlaceholderScreen
+import com.callbloqued.sift.presentation.navigation.SiftNavHost
 import com.callbloqued.sift.presentation.theme.SiftTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -14,8 +14,9 @@ import dagger.hilt.android.AndroidEntryPoint
  * Annotated with [AndroidEntryPoint] so that Hilt can inject dependencies into this activity
  * and into any composables that request a [dagger.hilt.android.lifecycle.HiltViewModel].
  *
- * In F4 (UI phase) this activity will host a NavHost with the full navigation graph.
- * Until then, it displays [PlaceholderScreen] to confirm the build is wired correctly.
+ * Hosts [SiftNavHost] which owns the [androidx.navigation.NavHostController] and the
+ * bottom-navigation scaffold. All navigation and screen composition happens inside that
+ * composable tree; this activity remains a thin host with no business logic.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -30,7 +31,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SiftTheme {
-                PlaceholderScreen()
+                SiftNavHost()
             }
         }
     }

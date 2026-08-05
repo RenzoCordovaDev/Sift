@@ -85,6 +85,7 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.navigation.compose)
 
     // Room — local database (entities and DAOs come in F1/F2)
     implementation(libs.room.runtime)
