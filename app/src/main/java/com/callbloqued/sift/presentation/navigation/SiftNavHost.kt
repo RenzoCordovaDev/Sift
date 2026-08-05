@@ -2,7 +2,7 @@ package com.callbloqued.sift.presentation.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -119,5 +119,5 @@ private data class NavBarItem(
 private fun navBarItems(): List<NavBarItem> = listOf(
     NavBarItem(SiftDestination.HISTORY, Icons.Filled.Phone, stringResource(R.string.nav_history)),
     NavBarItem(SiftDestination.SETTINGS, Icons.Filled.Settings, stringResource(R.string.nav_settings)),
-    NavBarItem(SiftDestination.MANUAL_LISTS, Icons.Filled.List, stringResource(R.string.nav_manual_lists))
+    NavBarItem(SiftDestination.MANUAL_LISTS, Icons.AutoMirrored.Filled.List, stringResource(R.string.nav_manual_lists))
 )
